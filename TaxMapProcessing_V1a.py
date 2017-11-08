@@ -16,6 +16,7 @@ from arcpy import management
 from arcpy import env
 from arcpy import SpatialReference
 from arcpy import GetMessages
+from arcpy import ExecuteError
 from datetime import date
 import ImageClass
 
@@ -50,8 +51,8 @@ try:
     else:
         print "The workspace is invalid."
         exit()
-except:
-    print "Error in checking workspace path existence. Exiting."
+except Exception as e:
+    print "Error in checking workspace path existence.\n{}".format(e)
     exit()
 
 print "Defining projection..."
@@ -64,8 +65,14 @@ try:
                 objImage = ImageClass.Image(dirname, str(file))
                 objImage.setFileName_lower()
                 print "Defining projection... {}".format(objImage.getFileName_lower())
-                management.DefineProjection(in_dataset=objImage.getFilePath_Original(),
-                                            coor_system=intDefineProjectionCode)
+                try:
+                    management.DefineProjection(in_dataset=objImage.getFilePath_Original(),
+                                                coor_system=intDefineProjectionCode)
+                except ExecuteError:
+                    print "Geoprocessing error during Define Projection for image {}.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
+                except Exception as e:
+                    print e
+
                 print "Define Projection successful"
                 print "Re-Projecting... {}".format(objImage.getFileName_lower())
                 try:
@@ -78,13 +85,15 @@ try:
                                              Registration_Point=None,
                                              in_coor_system=None)
                     print "Re-Project successful."
-                except:
-                    print "Project unsuccessful for {}. Skipping file.".format(objImage.getFileName_lower())
+                except ExecuteError:
+                    print "Geoprocessing erro during Project Raster for {}. Skipping file.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
                     lsUnsuccessfulImageReProjections.append(objImage.getFileName_lower())
+                except Exception as e:
+                    print e
             else:
                 continue
-except:
-    print "Error walking directory and creating Image object."
+except Exception as e:
+    print "Error walking directory and creating Image object.\n{}".format(e)
     exit()
 try:
     # Create Raster Catalog in workspace
@@ -98,9 +107,11 @@ try:
                                    spatial_grid_3=0,
                                    raster_management_type="MANAGED",
                                    template_raster_catalog=None)
-except:
-    print "Error creating Raster Catalog"
-    print(GetMessages())
+except ExecuteError:
+    print "Error creating Raster Catalog.\n{}".format(GetMessages(2))
+    exit()
+except Exception as e:
+    print e
     exit()
 
 print "Loading workspace into raster catalog..."
@@ -110,14 +121,16 @@ try:
                                         strRasterCatalogName,
                                         include_subdirectories=None,
                                         project=None)
-except:
-    print "Error loading workspace into {}".format(strRasterCatalogName)
-    print(GetMessages())
+except ExecuteError:
+    print "Geoprocessing error loading workspace into {}.\n{}".format(strRasterCatalogName,GetMessages(2))
+    exit()
+except Exception as e:
+    print e
     exit()
 
 print "Process complete."
 if len(lsUnsuccessfulImageReProjections) != 0:
-    print "The following list of lowercase filenames unsuccessfully Re-Projected\n{}".format(lsUnsuccessfulImageReProjections)
+    print "The following list of lowercase filenames did not Re-Project\n{}".format(lsUnsuccessfulImageReProjections)
 else:
     pass
 

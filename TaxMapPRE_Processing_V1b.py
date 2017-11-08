@@ -54,8 +54,8 @@ try:
             strNewMasterImageCollectionFolderPath = os.path.join(strNewFileDirectoryForAllImages, strNewFolderNameForAllImagesStorage)
             os.mkdir(strNewMasterImageCollectionFolderPath)
             strReportFileLocation = strNewMasterImageCollectionFolderPath  # Report file will go in with images
-        except:
-            print "Error creating new folder. Exiting..."
+        except Exception as e:
+            print "Error creating new folder.\n{}".format(e)
             exit()
 except:
     print "The new directory appears to be invalid or already exists. Exiting."
@@ -139,23 +139,31 @@ try:
                 resBitDepth = arcpy.GetRasterProperties_management(in_raster=image.getFilePath_Moved(), property_type="VALUETYPE") # GetRasterProperties Returns a Results Object
                 # classUtilClass.examineResultObject(resBitDepth)
                 strBitDepth = str(resBitDepth)
-            except:
+            except arcpy.ExecuteError:
+                print "Geoprocessing error during image {} bit depth check: {}".format(image.getFileName_lower(),arcpy.GetMessages(2))
                 strBitDepth = "Error"
+            except Exception as e:
+                strBitDepth = "Error"
+                print e
 
             # Get the spatial reference
             try:
                 spatrefProjectionName = arcpy.Describe(image.getFilePath_Moved()).spatialReference
                 strProjectionName = str(spatrefProjectionName.name)
-            except:
+            except arcpy.ExecuteError:
+                print "Geoprocessing error during image {} spatial reference check: {}".format(image.getFileName_lower(),arcpy.GetMessages(2))
                 strProjectionName = "Error"
+            except Exception as e:
+                strProjectionName = "Error"
+                print e
 
             # Build tuple (HasTFW, BitDepth, Projection)
             tupFileData = (dictTFWCheck.get(image.getFileName_lower()), strBitDepth, strProjectionName)
             dictReportData[image.getFileName_lower()] = tupFileData
         else:
             continue
-except:
-    print "Error while building report data"
+except Exception as e:
+    print "Error while building report data.\n{}".format(e)
 
 #TODO: Determine if the below code can be refactored to use Image objects
     # Create and Write the report file for use in excel etc.
@@ -166,9 +174,10 @@ try:
         fReportFile.write("{0},{1},{2},{3}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
         for key,value in dictReportData.iteritems():
             fReportFile.write("{0},{1},{2},{3}\n".format(key,value[0],value[1],value[2]))
-except:
-    print "Error opening/writing to report file"
+except Exception as e:
+    print "Error opening/writing to report file.\n{}".format(e)
     exit()
+
     # Provide the user the opportunity to trigger Step 2 now rather than starting it separate from this process.
 print "Pre-Processing Complete. Please visit your report and review the contents.\n\n\tREPORT LOCATION > {}\n".format(strReportFilePath)
 
