@@ -7,6 +7,7 @@
 # ASSUMPTIONS:  All files have been run through the Step 1 process.
 #               All TIF images have a TFW.
 ####################
+
 #TODO: once script stabilizes refine imports to slim imported content
 # IMPORTS
 import os

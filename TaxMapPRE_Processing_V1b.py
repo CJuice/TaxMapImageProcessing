@@ -83,7 +83,7 @@ try:
             else:
                 continue
     print "File extensions present in image datasets: {}".format(tuple(setOfFileExtensions))
-    strUserCheck = raw_input("Care to proceed? (y/n)\n")
+    strUserCheck = raw_input("Care to proceed? (y/n)\n>")
 except:
     print "Error walking directory and checking file extensions."
     exit()
@@ -126,9 +126,6 @@ for tifFileName in lsFileNamesTIF:
         dictTFWCheck[tifFileName] = 1
     else:
         dictTFWCheck[tifFileName] = 0
-# print "lsFileNamesTIF\n {}".format(lsFileNamesTIF)
-# print "lsFileNamesTFW\n {}".format(lsFileNamesTFW)
-# print "dictTFWCheck\n {}".format(dictTFWCheck)
 
         # Build the tuple of file data for the report file
 dictReportData = {}
@@ -173,7 +170,15 @@ try:
 except:
     print "Error opening/writing to report file"
     exit()
+    # Provide the user the opportunity to trigger Step 2 now rather than starting it separate from this process.
+print "Pre-Processing Complete. Please visit your report and review the contents.\n\n\tREPORT LOCATION > {}\n".format(strReportFilePath)
 
-print "Preprocessing Complete. Visit your report. {}".format(strReportFilePath)
+# Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
+try:
+    strContinue = raw_input("If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>")
+    if strContinue == "y":
+        import TaxMapProcessing_V1a
+        TaxMapProcessing_V1a
+except:
+    exit()
 
-# DELETIONS
