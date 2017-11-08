@@ -1,6 +1,6 @@
 ####################
-#
-#
+# Author: CJS
+# Date: 20171108
 #
 #
 #
@@ -30,7 +30,6 @@ lsAcceptableExtensionsForImageFilesOfInterest = ["tif","tfw","tif.xml"]
 lsFileNamesTIF = []
 lsFileNamesTFW = []
 dictTFWCheck = {}
-
 
 # INPUTS
     # Get the directory of the tif files to walk through
@@ -62,8 +61,10 @@ except:
     print "The new directory appears to be invalid or already exists. Exiting."
     exit()
 
+    # Step through the directory and all subdirectories. Create Image Objects for all files.
+    # Write every image object filename to a list based on the file extension.
     # Notify the script user of the file extensions they are asking the script to examine and get a decision on proceed/exit
-        # Basically a check for non TIF and TFW files.
+        # Basically a check for non TIF and TFW files such as zip files.
 try:
     setOfFileExtensions = set()
     for (dirname, dirs, files) in os.walk(strInputFileDirectory):
@@ -83,7 +84,7 @@ try:
             else:
                 continue
     print "File extensions present in image datasets: {}".format(tuple(setOfFileExtensions))
-    strUserCheck = raw_input("Care to proceed? (y/n)\n>")
+    strUserCheck = raw_input("Proceed? (y/n)\n>")
 except:
     print "Error walking directory and checking file extensions."
     exit()
@@ -94,8 +95,7 @@ print "Processing..."
 
 #FUNCTIONALITY
 
-    # Step through the directory and all subfolders.
-    #   Write every filename to a list based on the file extension. (Completed above)
+    # Step through all Image Objects.
     #   Check that each .tif has a .tfw file. Write to dictionary with filename:(Zero for False, One for True)
     #   Check the bit depth of each .tif .
     #   Check the projection.
@@ -116,7 +116,7 @@ try:
         else:
             continue
 except:
-    print "Error while moving file."
+    print "Error while moving files."
     exit()
 
     # Build the report data
@@ -150,7 +150,6 @@ try:
                 strProjectionName = "Error"
 
             # Build tuple (HasTFW, BitDepth, Projection)
-            # print dictTFWCheck.get(tupFileNameParts[0].lower())
             tupFileData = (dictTFWCheck.get(image.getFileName_lower()), strBitDepth, strProjectionName)
             dictReportData[image.getFileName_lower()] = tupFileData
         else:
