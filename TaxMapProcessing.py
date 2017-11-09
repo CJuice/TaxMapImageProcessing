@@ -85,9 +85,9 @@ try:
                                              geographic_transform="NAD_1983_To_WGS_1984_1",
                                              Registration_Point=None,
                                              in_coor_system=None)
-                    print "Re-Project successful."
+                    print "Re-Project successful.\n----------"
                 except ExecuteError:
-                    print "Geoprocessing erro during Project Raster for {}. Skipping file.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
+                    print "Geoprocessing error during Project Raster for {}. Skipping file.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
                     lsUnsuccessfulImageReProjections.append(objImage.getFileName_lower())
                 except Exception as e:
                     print e

@@ -5,7 +5,7 @@ class UtilityClassFunctionality(object):
         pass
 
     @staticmethod
-    def processUserEntry_YesNo(self,strUserEntry):
+    def processUserEntry_YesNo(strUserEntry):
         """Enter Description"""
         import sys
         if strUserEntry.lower() == "y":
@@ -14,7 +14,7 @@ class UtilityClassFunctionality(object):
             sys.exit()
 
     @staticmethod
-    def examineResultObject(self, resultObjectFromESRIProcess):
+    def examineResultObject(resultObjectFromESRIProcess):
         """Enter Description"""
         lenResult = len(resultObjectFromESRIProcess)
         print "len: {}".format(lenResult)

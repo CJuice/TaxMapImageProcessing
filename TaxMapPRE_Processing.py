@@ -183,8 +183,8 @@ print "Pre-Processing Complete. Please visit your report and review the contents
 try:
     strContinue = raw_input("If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>")
     if strContinue == "y":
-        import TaxMapProcessing_V1a
-        TaxMapProcessing_V1a
+        import TaxMapProcessing
+        TaxMapProcessing
 except:
     exit()
 
