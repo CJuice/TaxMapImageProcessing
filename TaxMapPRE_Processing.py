@@ -44,8 +44,8 @@ try:
         exit()
     else:
         pass
-except:
-    print "Image file directory appears to be invalid"
+except Exception as e:
+    print "Image file directory appears to be invalid.\n{}".format(e)
     exit()
 
     # Get the path where a new folder will be created. The folder will hold all image files.
@@ -62,8 +62,8 @@ try:
         except Exception as e:
             print "Error creating new folder.\n{}".format(e)
             exit()
-except:
-    print "The new directory appears to be invalid or already exists. Exiting."
+except Exception as e:
+    print "The new directory appears to be invalid or already exists.\n{}".format(e)
     exit()
 
     # Step through the directory and all subdirectories. Create Image Objects for all files.
@@ -73,9 +73,9 @@ except:
 try:
     setOfFileExtensions = set()
     for (dirname, dirs, files) in os.walk(strInputFileDirectory):
-        for file in files:
+        for eachFile in files:
             # Build image object, store in list, and set properties
-            objImage = ImageClass.Image(dirname, str(file))
+            objImage = ImageClass.Image(dirname, str(eachFile))
             objImage.setFileName_lower()
             objImage.setFileExtension_lower()
             lsImageObjects.append(objImage)
@@ -90,13 +90,13 @@ try:
                 continue
     print "File extensions present in image datasets: {}".format(tuple(setOfFileExtensions))
     strUserCheck = raw_input("Proceed? (y/n)\n>")
-except:
-    print "Error walking directory and checking file extensions."
+except Exception as e:
+    print "Error walking directory and checking file extensions.\n{}".format(e)
     exit()
 
     # Check user entry to see if they are okay with the files about to be processed.
 UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
-print "Processing..."
+print "Processing...(moving files, checking for accompanying .tfw file, and retrieving bit depth and projection)"
 
 #FUNCTIONALITY
 
@@ -120,8 +120,8 @@ try:
             shutil.move(image.getFilePath_Original(), image.getFilePath_Moved())
         else:
             continue
-except:
-    print "Error while moving files."
+except Exception as e:
+    print "Error while moving files.\n{}".format(e)
     exit()
 
     # Build the report data
@@ -192,6 +192,7 @@ try:
     if strContinue == "y":
         import TaxMapProcessing
         TaxMapProcessing
-except:
+except Exception as e:
+    print e
     exit()
 
