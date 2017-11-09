@@ -41,3 +41,20 @@ class UtilityClassFunctionality(object):
         for i in range(0,lenResult):
             strTemp = str(resultObjectFromESRIProcess[i])
             print "\t{}".format(strTemp)
+
+#TODO: Customize the printed error message for the tool being passed through.
+    @staticmethod
+    def captureAndPrintGeoprocessingErrors(func):
+        from arcpy import ExecuteError, GetMessages
+
+        def f(*args, **kwargs):
+            try:
+                rv = func(*args, **kwargs)
+            except ExecuteError:
+                print "Error creating Raster Catalog.\n{}".format(GetMessages(2))
+                return exit()
+            except Exception as e:
+                print e
+                return exit()
+            return rv
+        return f

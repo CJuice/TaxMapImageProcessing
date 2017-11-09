@@ -26,6 +26,7 @@ from arcpy import GetMessages
 from arcpy import ExecuteError
 from datetime import date
 import ImageClass
+from UtilityClass import UtilityClassFunctionality
 
 # VARIABLES
 strDateToday = str(date.today()).replace("-", "")
@@ -48,6 +49,11 @@ strConsolidatedImageFileFolderPath = raw_input("Paste the path to the folder con
 strGeodatabaseWorkspacePath = raw_input("Paste the path to the workspace (geodatabase).\n>")
 
 # FUNCTIONALITY
+    # Functions
+@UtilityClassFunctionality.captureAndPrintGeoprocessingErrors
+def runESRIGPTool(func, *args, **kwargs):
+    return func(*args, **kwargs)
+
     # See if workspace exists
 try:
     if os.path.exists(strGeodatabaseWorkspacePath):
@@ -71,75 +77,52 @@ try:
                 objImage = ImageClass.Image(dirname, str(eachFile))
                 objImage.setFileName_lower()
                 print "Defining projection... {}".format(objImage.getFileName_lower())
-                try:
-                    management.DefineProjection(in_dataset=objImage.getFilePath_Original(),
-                                                coor_system=intDefineProjectionCode)
-                except ExecuteError:
-                    print "Geoprocessing error during Define Projection for image {}.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
-                except Exception as e:
-                    print e
-
-                print "Define Projection successful"
+                runESRIGPTool(management.DefineProjection,
+                              in_dataset=objImage.getFilePath_Original(),
+                              coor_system=intDefineProjectionCode)
                 print "Re-Projecting... {}".format(objImage.getFileName_lower())
-                try:
-                    management.ProjectRaster(in_raster=objImage.getFilePath_Original(),
-                                             out_raster=objImage.getFileName_lower(),
-                                             out_coor_system=objSpatialReferenceProjectedRaster,
-                                             resampling_type=None,
-                                             cell_size=None,
-                                             geographic_transform="NAD_1983_To_WGS_1984_1",
-                                             Registration_Point=None,
-                                             in_coor_system=None)
-                    print "Re-Project successful.\n----------"
-                except ExecuteError:
-                    print "Geoprocessing error during Project Raster for {}. Skipping file.\n{}".format(objImage.getFileName_lower(),GetMessages(2))
-                    lsUnsuccessfulImageReProjections.append(objImage.getFileName_lower())
-                except Exception as e:
-                    print e
+                runESRIGPTool(management.ProjectRaster,
+                              in_raster=objImage.getFilePath_Original(),
+                              out_raster=objImage.getFileName_lower(),
+                              out_coor_system=objSpatialReferenceProjectedRaster,
+                              resampling_type=None,
+                              cell_size=None,
+                              geographic_transform="NAD_1983_To_WGS_1984_1",
+                              Registration_Point=None,
+                              in_coor_system=None)
+                #TODO: lost the below functionality when I went to Decorator use
+                #     lsUnsuccessfulImageReProjections.append(objImage.getFileName_lower())
             else:
                 continue
 except Exception as e:
     print "Error walking directory and creating Image object.\n{}".format(e)
     exit()
 
-try:
-    # Create Raster Catalog in workspace
-    management.CreateRasterCatalog(out_path=env.workspace,
-                                   out_name=strRasterCatalogName,
-                                   raster_spatial_reference=objSpatialReferenceProjectedRaster,
-                                   spatial_reference=objSpatialReferenceProjectedRaster,
-                                   config_keyword=None,
-                                   spatial_grid_1=0,
-                                   spatial_grid_2=0,
-                                   spatial_grid_3=0,
-                                   raster_management_type="MANAGED",
-                                   template_raster_catalog=None)
-except ExecuteError:
-    print "Error creating Raster Catalog.\n{}".format(GetMessages(2))
-    exit()
-except Exception as e:
-    print e
-    exit()
+runESRIGPTool(management.CreateRasterCatalog,
+              out_path=env.workspace,
+              out_name=strRasterCatalogName,
+              raster_spatial_reference=objSpatialReferenceProjectedRaster,
+              spatial_reference=objSpatialReferenceProjectedRaster,
+              config_keyword=None,
+              spatial_grid_1=0,
+              spatial_grid_2=0,
+              spatial_grid_3=0,
+              raster_management_type="MANAGED",
+              template_raster_catalog=None)
 
 print "Loading workspace into raster catalog..."
 
     # Load raster datasets into raster catalog
-try:
-    management.WorkspaceToRasterCatalog(env.workspace,
-                                        strRasterCatalogName,
-                                        include_subdirectories=None,
-                                        project=None)
-except ExecuteError:
-    print "Geoprocessing error loading workspace into {}.\n{}".format(strRasterCatalogName,GetMessages(2))
-    exit()
-except Exception as e:
-    print e
-    exit()
+runESRIGPTool(management.WorkspaceToRasterCatalog,
+              env.workspace,
+              strRasterCatalogName,
+              include_subdirectories=None,
+              project=None)
 
 print "Process complete."
-if len(lsUnsuccessfulImageReProjections) != 0:
-    print "The following list of lowercase filenames did not Re-Project\n{}".format(lsUnsuccessfulImageReProjections)
-else:
-    pass
+# if len(lsUnsuccessfulImageReProjections) != 0:
+#     print "The following list of lowercase filenames did not Re-Project\n{}".format(lsUnsuccessfulImageReProjections)
+# else:
+#     pass
 
 # DELETIONS
