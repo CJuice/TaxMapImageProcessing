@@ -1,15 +1,20 @@
-####################
-# Author: CJS
-# Date: 20171108
-#
-#
-#
-# ASSUMPTIONS:  All files have been run through the Step 1 process.
-#               All TIF images have a TFW.
-####################
+"""
+Evaluate .tif images for an accompanying .tfw file, the bit depth, and projection. Writes a report .csv with findings.
+
+Completes step 2 of a 2 step process as of 20171109.
+The script imports ImageClass.py.
+The script gathers two paths from the user using raw_input.
+    path 1 is the directory for the consolidated image files evaluated in step 1
+    path 2 is the geodatabase workspace for re-projected images and a raster catalog
+The script defines the projection for each image, re-projects the image, re-locates the image to the workspace,
+creates a raster catalog, and loads the images into a raster catalog.
+ASSUMPTIONS:  All files have been run through the Step 1 process. All TIF images have a TFW.
+Author: CJS
+Date: 20171108
+"""
 
 #TODO: once script stabilizes refine imports to slim imported content
-#TODO: See if decorators can be used to reduce error catching code redundancies
+#TODO: See if decorators can be used to reduce redundant error catching code
 # IMPORTS
 import os
 from sys import exit

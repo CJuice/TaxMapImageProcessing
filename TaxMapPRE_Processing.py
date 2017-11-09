@@ -1,11 +1,18 @@
-####################
-# Author: CJS
-# Date: 20171108
-#
-#
-#
-#
-####################
+"""
+Evaluate .tif images for an accompanying .tfw file, the bit depth, and projection. Writes a report .csv with findings.
+
+Completes step 1 of a 2 step process as of 20171109.
+Step 1 is the pre-processing step used to check Tax Map Images from the MD Department of Planning
+in order to avoid throwing errors later on in Step 2.
+The script imports UtilityClass.py and ImageClass.py.
+The script gathers two paths from the user using raw_input.
+    path 1 is the directory for the image files
+    path 2 is the directory where an output report csv file will be created
+The script creates a csv file and populates it with data on the images.
+Author: CJS
+Date: 20171108
+"""
+
 #TODO: once script stabilizes refine imports to slim imported content
 # Imports
 from sys import exit
