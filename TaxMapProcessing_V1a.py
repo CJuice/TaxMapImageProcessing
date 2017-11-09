@@ -9,6 +9,7 @@
 ####################
 
 #TODO: once script stabilizes refine imports to slim imported content
+#TODO: See if decorators can be used to reduce error catching code redundancies
 # IMPORTS
 import os
 from sys import exit
@@ -95,6 +96,7 @@ try:
 except Exception as e:
     print "Error walking directory and creating Image object.\n{}".format(e)
     exit()
+
 try:
     # Create Raster Catalog in workspace
     management.CreateRasterCatalog(out_path=env.workspace,

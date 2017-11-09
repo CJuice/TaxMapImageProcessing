@@ -13,7 +13,7 @@ import os
 import arcpy
 import shutil
 from datetime import date
-import UtilityClass
+from UtilityClass import UtilityClassFunctionality
 import ImageClass
 
 # VARIABLES
@@ -22,8 +22,6 @@ strFileNameHeader = "Filename"
 strHasTFWHeader = "HasTFW"
 strBitDepthHeader = "BitDepth"
 strProjectionHeader = "Projection"
-    # utility class instance
-classUtilClass = UtilityClass.UtilityClassFunctionality()
     # Lists
 lsImageObjects = []
 lsAcceptableExtensionsForImageFilesOfInterest = ["tif","tfw","tif.xml"]
@@ -90,7 +88,7 @@ except:
     exit()
 
     # Check user entry to see if they are okay with the files about to be processed.
-classUtilClass.processUserEntry_YesNo(strUserCheck)
+UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
 print "Processing..."
 
 #FUNCTIONALITY
@@ -137,7 +135,7 @@ try:
             # Get the bit depth
             try:
                 resBitDepth = arcpy.GetRasterProperties_management(in_raster=image.getFilePath_Moved(), property_type="VALUETYPE") # GetRasterProperties Returns a Results Object
-                # classUtilClass.examineResultObject(resBitDepth)
+                # UtilityClassFunctionality.examineResultObject(resBitDepth)
                 strBitDepth = str(resBitDepth)
             except arcpy.ExecuteError:
                 print "Geoprocessing error during image {} bit depth check: {}".format(image.getFileName_lower(),arcpy.GetMessages(2))
