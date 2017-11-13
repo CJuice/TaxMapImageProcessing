@@ -24,11 +24,36 @@ from UtilityClass import UtilityClassFunctionality
 import ImageClass
 
 # VARIABLES
-    # report file headers
+    # General
+strNewImageFolderEnding = "_AllTaxMapImages"
+strReportFileEnding = "_TaxMapReportFile.csv"
+strFileExtensionsPresentInImageDatasets = "File extensions present in image datasets: {}"
+strPSA_Processing = "Processing..."
+strPSA_ProcessingCompleteSeeReport = "Pre-Processing Complete. Please visit your report and review the contents.\n\n\tREPORT LOCATION > {}\n"
+strPSA_MoveToStepTwoProcess = "If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>"
+strPSA_YESResponseToMoveToStepTwo = "y"
+strError = "Error"
+strTodayDateNoDashes = str(date.today()).replace("-","")
+    # Report file headers
 strFileNameHeader = "Filename"
 strHasTFWHeader = "HasTFW"
 strBitDepthHeader = "BitDepth"
 strProjectionHeader = "Projection"
+    # Input prompt messages
+strPromptForImageDirectoryPath = "Paste the path for the directory of .tif files you want to process\n>"
+strPromptForNewImageDirectoryPath = "Paste the path where a new folder will be created and will hold a copy of all images for processing\n>"
+strPromptForProceedWithKnownPresentFileExtensions = "Proceed? (y/n)\n>"
+    # Error messages
+strErrorMsgImageFileDirectoryInvalid = "Image file directory appears to be invalid.\n{}"
+strErrorMsgNewFolderCreationFail = "Error creating new folder.\n{}"
+strErrorMsgNewImageDirectoryInvalidOrExists = "The new directory appears to be invalid or already exists.\n{}"
+strErrorMsgWalkingDirectoryCheckingExtensionsFail = "Error walking directory and checking file extensions.\n{}"
+strErrorMsgFileAlreadyExistsInLocation = "File [{}] already exists in new location."
+strErrorMsgMovingFilesFail = "Error while moving files.\n{}"
+strGPErrorMsgBitDepthCheckFail = "Geoprocessing error during image {} bit depth check: {}"
+strGPErrorMsgSpatialReferenceCheckFail = "Geoprocessing error during image {} spatial reference check: {}"
+strErrorMsgBuildingReportFail = "Error while building report data.\n{}"
+strErrorMsgOpeningWritingCSVFileFail = "Error opening/writing to report file.\n{}"
     # Lists
 lsImageObjects = []
 lsAcceptableExtensionsForImageFilesOfInterest = ["tif","tfw","tif.xml"]
@@ -39,33 +64,28 @@ dictTFWCheck = {}
 # INPUTS
     # Get the directory of the tif files to walk through
 try:
-    strPromptForImageDirectoryPath = "Paste the path for the directory of tiff files you want to process\n>"
     strInputFileDirectory = UtilityClassFunctionality.rawInputBasicChecks(strPromptForImageDirectoryPath)
-    if not os.path.exists(strInputFileDirectory):
-        exit()
-    else:
-        pass
+    UtilityClassFunctionality.checkPathExists(strInputFileDirectory)
 except Exception as e:
-    print "Image file directory appears to be invalid.\n{}".format(e)
+    print strErrorMsgImageFileDirectoryInvalid.format(e)
     exit()
 
     # Get the path where a new folder will be created. The folder will hold all image files.
 try:
-    strPromptForNewImageDirectoryPath = "Paste the path where a new folder will be created and will hold a copy of all images for processing\n>"
     strNewFileDirectoryForAllImages = UtilityClassFunctionality.rawInputBasicChecks(strPromptForNewImageDirectoryPath)
-    if not os.path.exists(strNewFileDirectoryForAllImages):
-        exit()
-    else:
+    if os.path.exists(strNewFileDirectoryForAllImages):
         try:
-            strNewFolderNameForAllImagesStorage = str(date.today()).replace("-", "") + "_AllTaxMapImages"
+            strNewFolderNameForAllImagesStorage = "{}{}".format(strTodayDateNoDashes, strNewImageFolderEnding)
             strNewMasterImageCollectionFolderPath = os.path.join(strNewFileDirectoryForAllImages, strNewFolderNameForAllImagesStorage)
             os.mkdir(strNewMasterImageCollectionFolderPath)
             strReportFileLocation = strNewMasterImageCollectionFolderPath  # Report file will go in with images
         except Exception as e:
-            print "Error creating new folder.\n{}".format(e)
+            print strErrorMsgNewFolderCreationFail.format(e)
             exit()
+    else:
+        exit()
 except Exception as e:
-    print "The new directory appears to be invalid or already exists.\n{}".format(e)
+    print strErrorMsgNewImageDirectoryInvalidOrExists.format(e)
     exit()
 
     # Step through the directory and all subdirectories. Create Image Objects for all files.
@@ -90,16 +110,15 @@ try:
                 lsFileNamesTIF.append(objImage.getFileName_lower())
             else:
                 continue
-    print "File extensions present in image datasets: {}".format(tuple(setOfFileExtensions))
-    strPromptForUserConfirmation = "Proceed? (y/n)\n>"
-    strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(strPromptForUserConfirmation)
+    print strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions))
+    strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(strPromptForProceedWithKnownPresentFileExtensions)
 except Exception as e:
-    print "Error walking directory and checking file extensions.\n{}".format(e)
+    print strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e)
     exit()
 
     # Check user entry to see if they are okay with the files about to be processed.
 UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
-print "Processing...(moving files, checking for accompanying .tfw file, and retrieving bit depth and projection)"
+print strPSA_Processing
 
 #FUNCTIONALITY
 
@@ -114,7 +133,7 @@ try:
         # Create string for new path, with a lowercase file name for standardizing moved image files, and check for existence to avoid error.
         strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.getFileName_and_Extension().lower())
         if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
-            print "File [{}] already exists in new location.".format(image.getFilePath_Original())
+            print strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original())
             exit()
         elif image.getFileExtension_lower() in lsAcceptableExtensionsForImageFilesOfInterest:
             image.setFilePath_Moved(strFullNewDestinationPathForFile_lowerfilename)
@@ -123,7 +142,7 @@ try:
         else:
             continue
 except Exception as e:
-    print "Error while moving files.\n{}".format(e)
+    print strErrorMsgMovingFilesFail.format(e)
     exit()
 
     # Build the report data
@@ -147,10 +166,10 @@ try:
                 # UtilityClassFunctionality.examineResultObject(resBitDepth)
                 strBitDepth = str(resBitDepth)
             except arcpy.ExecuteError:
-                print "Geoprocessing error during image {} bit depth check: {}".format(image.getFileName_lower(),arcpy.GetMessages(2))
-                strBitDepth = "Error"
+                print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),arcpy.GetMessages(2))
+                strBitDepth = strError
             except Exception as e:
-                strBitDepth = "Error"
+                strBitDepth = strError
                 print e
 
             # Get the spatial reference
@@ -158,10 +177,10 @@ try:
                 spatrefProjectionName = arcpy.Describe(image.getFilePath_Moved()).spatialReference
                 strProjectionName = str(spatrefProjectionName.name)
             except arcpy.ExecuteError:
-                print "Geoprocessing error during image {} spatial reference check: {}".format(image.getFileName_lower(),arcpy.GetMessages(2))
-                strProjectionName = "Error"
+                print strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),arcpy.GetMessages(2))
+                strProjectionName = strError
             except Exception as e:
-                strProjectionName = "Error"
+                strProjectionName = strError
                 print e
 
             # Build tuple (HasTFW, BitDepth, Projection)
@@ -170,29 +189,33 @@ try:
         else:
             continue
 except Exception as e:
-    print "Error while building report data.\n{}".format(e)
+    print strErrorMsgBuildingReportFail.format(e)
 
 #TODO: Determine if the below code can be refactored to use Image objects
     # Create and Write the report file for use in excel etc.
-strReportFileName = str(date.today()).replace("-","") + "_TaxMapReportFile.csv"
+strReportFileName = "{}{}".format(strTodayDateNoDashes, strReportFileEnding)
 strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
 try:
     with open(strReportFilePath,'w') as fReportFile:
-        fReportFile.write("{0},{1},{2},{3}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
+        #Why did I put numbers in the brackets!?
+        # fReportFile.write("{0},{1},{2},{3}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
+        fReportFile.write("{},{},{},{}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
         for key,value in dictReportData.iteritems():
-            fReportFile.write("{0},{1},{2},{3}\n".format(key,value[0],value[1],value[2]))
+            # Why did I put numbers in the brackets!?
+            # fReportFile.write("{0},{1},{2},{3}\n".format(key,value[0],value[1],value[2]))
+            fReportFile.write("{},{},{},{}\n".format(key,value[0],value[1],value[2]))
 except Exception as e:
-    print "Error opening/writing to report file.\n{}".format(e)
+    print strErrorMsgOpeningWritingCSVFileFail.format(e)
     exit()
 
     # Provide the user the opportunity to trigger Step 2 now rather than starting it separate from this process.
-print "Pre-Processing Complete. Please visit your report and review the contents.\n\n\tREPORT LOCATION > {}\n".format(strReportFilePath)
+print strPSA_ProcessingCompleteSeeReport.format(strReportFilePath)
 
 # Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 try:
-    strPromptForUserChoiceToContinueToStep2 = "If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>"
+    strPromptForUserChoiceToContinueToStep2 = strPSA_MoveToStepTwoProcess
     strContinue = UtilityClassFunctionality.rawInputBasicChecks(strPromptForUserChoiceToContinueToStep2)
-    if strContinue == "y":
+    if strContinue == strPSA_YESResponseToMoveToStepTwo:
         import TaxMapProcessing
         TaxMapProcessing
 except Exception as e:

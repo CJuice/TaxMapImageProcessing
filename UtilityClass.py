@@ -70,3 +70,11 @@ class UtilityClassFunctionality(object):
                 return exit()
             return rv
         return f
+
+    @staticmethod
+    def checkPathExists(strPath):
+        import os.path
+        if not os.path.exists(strPath):
+            return exit()
+        else:
+            return

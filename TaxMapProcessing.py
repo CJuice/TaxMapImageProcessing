@@ -40,15 +40,25 @@ objSpatialReferenceProjectedRaster = SpatialReference(intProjectRasterCode)
 strRasterCatalogName = "RCmanaged_{}".format(strDateToday)
 lsImageObjects = []
 lsUnsuccessfulImageReProjections = []
+strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
+strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
 
 # INPUTS
     # Get the path for the consolidated images files folder
-strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
-strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
+try:
+    strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
+    UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
+except:
+    print "Path does not appear to exist."
+    exit()
 
     # Get the geodatabase workspace from the user
-strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
-strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForGeodatabaseWorkspacePath)
+try:
+    strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForGeodatabaseWorkspacePath)
+    UtilityClassFunctionality.checkPathExists(strGeodatabaseWorkspacePath)
+except:
+    print "Path does not appear to exist."
+    exit()
 
 # FUNCTIONALITY
     # Functions
