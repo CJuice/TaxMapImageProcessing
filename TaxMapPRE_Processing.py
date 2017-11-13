@@ -4,11 +4,28 @@ Evaluate .tif images for an accompanying .tfw file, the bit depth, and projectio
 Completes step 1 of a 2 step process as of 20171109.
 Step 1 is the pre-processing step used to check Tax Map Images from the MD Department of Planning
 in order to avoid throwing errors later on in Step 2.
-The script imports UtilityClass.py and ImageClass.py.
-The script gathers two paths from the user using raw_input.
+The script does the following actions:
+Imports UtilityClass.py and ImageClass.py.
+Gathers two paths from the user using raw_input.
     path 1 is the directory for the image files
     path 2 is the directory where an output report csv file will be created
-The script creates a csv file and populates it with data on the images.
+Creates a csv file and populates it with data gathered about the images.
+Prompts user to move forward after displaying file extensions present in directory.
+Creates new directory for relocated images.
+Step through the directory and all subdirectories.
+Create Image Objects for all files.
+Write every image object filename to a list based on the file extension.
+Notify the script user of the file extensions they are asking the script to examine and get a decision on proceed/exit;
+basically a check for non TIF and TFW files such as zip files.
+Step through all Image Objects.
+Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
+Check the bit depth of each .tif .
+Check the projection.
+Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
+Move all files to master location
+Build the report data.
+Create and Write the report file for use in excel etc.
+Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 Author: CJS
 Date: 20171108
 """
@@ -92,7 +109,8 @@ except Exception as e:
     print strErrorMsgNewImageDirectoryInvalidOrExists.format(e)
     exit()
 
-    # Step through the directory and all subdirectories. Create Image Objects for all files.
+    # Step through the directory and all subdirectories.
+    # Create Image Objects for all files.
     # Write every image object filename to a list based on the file extension.
     # Notify the script user of the file extensions they are asking the script to examine and get a decision on proceed/exit
         # Basically a check for non TIF and TFW files such as zip files.
@@ -125,9 +143,8 @@ UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
 print strPSA_Processing
 
 #FUNCTIONALITY
-
     # Step through all Image Objects.
-    #   Check that each .tif has a .tfw file. Write to dictionary with filename:(Zero for False, One for True)
+    #   Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
     #   Check the bit depth of each .tif .
     #   Check the projection.
     #   Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
@@ -195,26 +212,20 @@ try:
 except Exception as e:
     print strErrorMsgBuildingReportFail.format(e)
 
-#TODO: Determine if the below code can be refactored to use Image objects
     # Create and Write the report file for use in excel etc.
 strReportFileName = "{}{}".format(strDateTodayNoDashes, strReportFileEnding)
 strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
 try:
     with open(strReportFilePath,'w') as fReportFile:
-        #Why did I put numbers in the brackets!?
-        # fReportFile.write("{0},{1},{2},{3}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
         fReportFile.write("{},{},{},{}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
         for key,value in dictReportData.iteritems():
-            # Why did I put numbers in the brackets!?
-            # fReportFile.write("{0},{1},{2},{3}\n".format(key,value[0],value[1],value[2]))
             fReportFile.write("{},{},{},{}\n".format(key,value[0],value[1],value[2]))
 except Exception as e:
     print strErrorMsgOpeningWritingCSVFileFail.format(e)
     exit()
 
-    # Provide the user the opportunity to trigger Step 2 now rather than starting it separate from this process.
 print strPSA_ProcessingCompleteSeeReport.format(strReportFilePath)
-print strPSA_ConsolidatedImageFilesLocation.format(strNewFileDirectoryForAllImages)
+print strPSA_ConsolidatedImageFilesLocation.format(strNewMasterImageCollectionFolderPath)
 
 # Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 try:
@@ -228,4 +239,3 @@ try:
 except Exception as e:
     print e
     exit()
-
