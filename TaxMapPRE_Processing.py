@@ -30,12 +30,14 @@ strReportFileEnding = "_TaxMapReportFile.csv"
 strFileExtensionsPresentInImageDatasets = "File extensions present in image datasets: {}"
 strPSA_Processing = "Processing..."
 strPSA_ProcessingCompleteSeeReport = "Pre-Processing Complete. Please visit your report and review the contents.\n\n\tREPORT LOCATION > {}\n"
+strPSA_ConsolidatedImageFilesLocation = "\tCONSOLIDATED IMAGE FILES PATH > {}\n"
 strPSA_MoveToStepTwoProcess = "If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>"
 strPSA_YESResponseToMoveToStepTwo = "y"
+strPSAProcessComplete = "Process complete."
 strError = "Error"
-strTodayDateNoDashes = str(date.today()).replace("-","")
+strDateTodayNoDashes = str(date.today()).replace("-", "")
     # Report file headers
-strFileNameHeader = "Filename"
+strFileNameHeader = "Filename_lowercase"
 strHasTFWHeader = "HasTFW"
 strBitDepthHeader = "BitDepth"
 strProjectionHeader = "Projection"
@@ -44,6 +46,7 @@ strPromptForImageDirectoryPath = "Paste the path for the directory of .tif files
 strPromptForNewImageDirectoryPath = "Paste the path where a new folder will be created and will hold a copy of all images for processing\n>"
 strPromptForProceedWithKnownPresentFileExtensions = "Proceed? (y/n)\n>"
     # Error messages
+strErrorMsgPathDoesNotExist = "Path does not exist."
 strErrorMsgImageFileDirectoryInvalid = "Image file directory appears to be invalid.\n{}"
 strErrorMsgNewFolderCreationFail = "Error creating new folder.\n{}"
 strErrorMsgNewImageDirectoryInvalidOrExists = "The new directory appears to be invalid or already exists.\n{}"
@@ -75,7 +78,7 @@ try:
     strNewFileDirectoryForAllImages = UtilityClassFunctionality.rawInputBasicChecks(strPromptForNewImageDirectoryPath)
     if os.path.exists(strNewFileDirectoryForAllImages):
         try:
-            strNewFolderNameForAllImagesStorage = "{}{}".format(strTodayDateNoDashes, strNewImageFolderEnding)
+            strNewFolderNameForAllImagesStorage = "{}{}".format(strDateTodayNoDashes, strNewImageFolderEnding)
             strNewMasterImageCollectionFolderPath = os.path.join(strNewFileDirectoryForAllImages, strNewFolderNameForAllImagesStorage)
             os.mkdir(strNewMasterImageCollectionFolderPath)
             strReportFileLocation = strNewMasterImageCollectionFolderPath  # Report file will go in with images
@@ -83,6 +86,7 @@ try:
             print strErrorMsgNewFolderCreationFail.format(e)
             exit()
     else:
+        print strErrorMsgPathDoesNotExist
         exit()
 except Exception as e:
     print strErrorMsgNewImageDirectoryInvalidOrExists.format(e)
@@ -193,7 +197,7 @@ except Exception as e:
 
 #TODO: Determine if the below code can be refactored to use Image objects
     # Create and Write the report file for use in excel etc.
-strReportFileName = "{}{}".format(strTodayDateNoDashes, strReportFileEnding)
+strReportFileName = "{}{}".format(strDateTodayNoDashes, strReportFileEnding)
 strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
 try:
     with open(strReportFilePath,'w') as fReportFile:
@@ -210,14 +214,17 @@ except Exception as e:
 
     # Provide the user the opportunity to trigger Step 2 now rather than starting it separate from this process.
 print strPSA_ProcessingCompleteSeeReport.format(strReportFilePath)
+print strPSA_ConsolidatedImageFilesLocation.format(strNewFileDirectoryForAllImages)
 
 # Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 try:
     strPromptForUserChoiceToContinueToStep2 = strPSA_MoveToStepTwoProcess
     strContinue = UtilityClassFunctionality.rawInputBasicChecks(strPromptForUserChoiceToContinueToStep2)
-    if strContinue == strPSA_YESResponseToMoveToStepTwo:
+    if strContinue.lower() == strPSA_YESResponseToMoveToStepTwo:
         import TaxMapProcessing
         TaxMapProcessing
+    else:
+        print strPSAProcessComplete
 except Exception as e:
     print e
     exit()

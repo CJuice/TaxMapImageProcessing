@@ -74,7 +74,8 @@ class UtilityClassFunctionality(object):
     @staticmethod
     def checkPathExists(strPath):
         import os.path
-        if not os.path.exists(strPath):
-            return exit()
-        else:
+        if os.path.exists(strPath):
             return
+        else:
+            print "Path does not exist."
+            return exit()

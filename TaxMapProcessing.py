@@ -14,8 +14,6 @@ Date: 20171108
 """
 
 #TODO: once script stabilizes refine imports to slim imported content
-#TODO: See if decorators can be used to reduce redundant error catching code
-
 # IMPORTS
 import os
 from sys import exit
@@ -29,19 +27,33 @@ import ImageClass
 from UtilityClass import UtilityClassFunctionality
 
 # VARIABLES
-strDateToday = str(date.today()).replace("-", "")
+    # General
+strDateTodayNoDashes = str(date.today()).replace("-", "")
 strConsolidatedImageFileFolderPath = None
 strGeodatabaseWorkspacePath = None
 lsTifFilesInImagesFolder = None
 intDefineProjectionCode = 26985 # WKID 2248 is feet, WKID 26985 is meters
 intProjectRasterCode = 3857 # WKID 3857 is web mercator
 objSpatialReferenceProjectedRaster = SpatialReference(intProjectRasterCode)
-# strRasterDatasetName = "RD_{}".format(strDateToday)
-strRasterCatalogName = "RCmanaged_{}".format(strDateToday)
-lsImageObjects = []
-lsUnsuccessfulImageReProjections = []
+strRasterCatalogName = "RCmanaged_{}".format(strDateTodayNoDashes)
+env.overwriteOutput = True
+strPSADefiningProjection = "Defining projection... {}"
+strPSAReProjecting = "Re-Projecting... {}"
+strPSAWorkspaceToRasterCatalog = "Loading workspace into raster catalog..."
+strPSAProcessComplete = "Process complete."
+strGeographicTransformationNAD83_WGS84 = "NAD_1983_To_WGS_1984_1"
+strRasterManagementType = "MANAGED"
+
+    # Input prompt messages
 strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
 strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
+    # Error messages
+strErrorMsgPathInvalid = "Path does not appear to exist. \n{}\n"
+strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and creating Image object.\n{}"
+
+    # Lists
+lsImageObjects = []
+lsUnsuccessfulImageReProjections = []
 
 # INPUTS
     # Get the path for the consolidated images files folder
@@ -49,37 +61,25 @@ try:
     strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
     UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
 except:
-    print "Path does not appear to exist."
+    print strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath)
     exit()
 
-    # Get the geodatabase workspace from the user
+    # Get the geodatabase workspace from the user. if valid set workspace.
 try:
     strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForGeodatabaseWorkspacePath)
     UtilityClassFunctionality.checkPathExists(strGeodatabaseWorkspacePath)
+    env.workspace = strGeodatabaseWorkspacePath
 except:
-    print "Path does not appear to exist."
+    print strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath)
     exit()
 
-# FUNCTIONALITY
-    # Functions
+# FUNCTIONS
 @UtilityClassFunctionality.captureAndPrintGeoprocessingErrors
 def runESRIGPTool(func, *args, **kwargs):
+    """"""
     return func(*args, **kwargs)
 
-    # See if workspace exists
-try:
-    if os.path.exists(strGeodatabaseWorkspacePath):
-        print "gdb exists"
-        # assign workspace to env variable and set overwrite output to true
-        env.workspace = strGeodatabaseWorkspacePath
-        env.overwriteOutput = True
-    else:
-        print "The workspace is invalid."
-        exit()
-except Exception as e:
-    print "Error in checking workspace path existence.\n{}".format(e)
-    exit()
-
+# FUNCTIONALITY
 try:
     for (dirname, dirs, files) in os.walk(strConsolidatedImageFileFolderPath):
         for eachFile in files:
@@ -88,18 +88,18 @@ try:
                 # Build image object, set properties, and store in list
                 objImage = ImageClass.Image(dirname, str(eachFile))
                 objImage.setFileName_lower()
-                print "Defining projection... {}".format(objImage.getFileName_lower())
+                print strPSADefiningProjection.format(objImage.getFileName_lower())
                 runESRIGPTool(management.DefineProjection,
                               in_dataset=objImage.getFilePath_Original(),
                               coor_system=intDefineProjectionCode)
-                print "Re-Projecting... {}".format(objImage.getFileName_lower())
+                print strPSAReProjecting.format(objImage.getFileName_lower())
                 runESRIGPTool(management.ProjectRaster,
                               in_raster=objImage.getFilePath_Original(),
                               out_raster=objImage.getFileName_lower(),
                               out_coor_system=objSpatialReferenceProjectedRaster,
                               resampling_type=None,
                               cell_size=None,
-                              geographic_transform="NAD_1983_To_WGS_1984_1",
+                              geographic_transform=strGeographicTransformationNAD83_WGS84,
                               Registration_Point=None,
                               in_coor_system=None)
                 #TODO: lost the below functionality when I went to Decorator use
@@ -107,7 +107,7 @@ try:
             else:
                 continue
 except Exception as e:
-    print "Error walking directory and creating Image object.\n{}".format(e)
+    print strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e)
     exit()
 
 runESRIGPTool(management.CreateRasterCatalog,
@@ -119,10 +119,10 @@ runESRIGPTool(management.CreateRasterCatalog,
               spatial_grid_1=0,
               spatial_grid_2=0,
               spatial_grid_3=0,
-              raster_management_type="MANAGED",
+              raster_management_type=strRasterManagementType,
               template_raster_catalog=None)
 
-print "Loading workspace into raster catalog..."
+print strPSAWorkspaceToRasterCatalog
 
     # Load raster datasets into raster catalog
 runESRIGPTool(management.WorkspaceToRasterCatalog,
@@ -131,10 +131,8 @@ runESRIGPTool(management.WorkspaceToRasterCatalog,
               include_subdirectories=None,
               project=None)
 
-print "Process complete."
+print strPSAProcessComplete
 # if len(lsUnsuccessfulImageReProjections) != 0:
 #     print "The following list of lowercase filenames did not Re-Project\n{}".format(lsUnsuccessfulImageReProjections)
 # else:
 #     pass
-
-# DELETIONS
