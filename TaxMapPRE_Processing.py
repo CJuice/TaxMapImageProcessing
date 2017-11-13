@@ -39,7 +39,8 @@ dictTFWCheck = {}
 # INPUTS
     # Get the directory of the tif files to walk through
 try:
-    strInputFileDirectory = raw_input("Paste the path for the directory of tiff files you want to process\n>")
+    strPromptForImageDirectoryPath = "Paste the path for the directory of tiff files you want to process\n>"
+    strInputFileDirectory = UtilityClassFunctionality.rawInputBasicChecks(strPromptForImageDirectoryPath)
     if not os.path.exists(strInputFileDirectory):
         exit()
     else:
@@ -50,7 +51,8 @@ except Exception as e:
 
     # Get the path where a new folder will be created. The folder will hold all image files.
 try:
-    strNewFileDirectoryForAllImages = raw_input("Paste the path where a new folder will be created and will hold a copy of all images for processing\n>")
+    strPromptForNewImageDirectoryPath = "Paste the path where a new folder will be created and will hold a copy of all images for processing\n>"
+    strNewFileDirectoryForAllImages = UtilityClassFunctionality.rawInputBasicChecks(strPromptForNewImageDirectoryPath)
     if not os.path.exists(strNewFileDirectoryForAllImages):
         exit()
     else:
@@ -89,7 +91,8 @@ try:
             else:
                 continue
     print "File extensions present in image datasets: {}".format(tuple(setOfFileExtensions))
-    strUserCheck = raw_input("Proceed? (y/n)\n>")
+    strPromptForUserConfirmation = "Proceed? (y/n)\n>"
+    strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(strPromptForUserConfirmation)
 except Exception as e:
     print "Error walking directory and checking file extensions.\n{}".format(e)
     exit()
@@ -105,7 +108,6 @@ print "Processing...(moving files, checking for accompanying .tfw file, and retr
     #   Check the bit depth of each .tif .
     #   Check the projection.
     #   Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
-
     # Move all files to master location
 try:
     for image in lsImageObjects:
@@ -188,7 +190,8 @@ print "Pre-Processing Complete. Please visit your report and review the contents
 
 # Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 try:
-    strContinue = raw_input("If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>")
+    strPromptForUserChoiceToContinueToStep2 = "If the images files looks satisfactory, based on the report findings, type a 'y' to run Step 2 now. Type 'n' to stop.\n>"
+    strContinue = UtilityClassFunctionality.rawInputBasicChecks(strPromptForUserChoiceToContinueToStep2)
     if strContinue == "y":
         import TaxMapProcessing
         TaxMapProcessing

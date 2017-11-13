@@ -43,10 +43,12 @@ lsUnsuccessfulImageReProjections = []
 
 # INPUTS
     # Get the path for the consolidated images files folder
-strConsolidatedImageFileFolderPath = raw_input("Paste the path to the folder containing the consolidated image files.\n>")
+strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
+strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
 
     # Get the geodatabase workspace from the user
-strGeodatabaseWorkspacePath = raw_input("Paste the path to the workspace (geodatabase).\n>")
+strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
+strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForGeodatabaseWorkspacePath)
 
 # FUNCTIONALITY
     # Functions

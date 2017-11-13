@@ -12,6 +12,18 @@ class UtilityClassFunctionality(object):
         pass
 
     @staticmethod
+    def rawInputBasicChecks(strRawInputPromptSentence):
+        """"""
+        strUserInput = None
+        while True:
+            strUserInput = raw_input(strRawInputPromptSentence)
+            if strUserInput == None or len(strUserInput) == 0:
+                pass
+            else:
+                break
+        return strUserInput
+
+    @staticmethod
     def processUserEntry_YesNo(strUserEntry):
         """
         Evaluate the users response to a raw_input for yes or no.
