@@ -30,7 +30,6 @@ Author: CJS
 Date: 20171108
 """
 
-#TODO: once script stabilizes refine imports to slim imported content
 # Imports
 from sys import exit
 import os
@@ -181,9 +180,12 @@ try:
         strImageObjectExtension = image.getFileExtension_lower()
         if strImageObjectExtension == "tif":
 
+            # NOTE: For the next two operations the decorator is not used because the process needs to continue even
+            #       on error. The report file documents all including Errors.
             # Get the bit depth
             try:
-                resBitDepth = management.GetRasterProperties(in_raster=image.getFilePath_Moved(), property_type="VALUETYPE") # GetRasterProperties Returns a Results Object
+                resBitDepth = management.GetRasterProperties(in_raster=image.getFilePath_Moved(),
+                                                             property_type="VALUETYPE") # Returns a Results Object
                 # UtilityClassFunctionality.examineResultObject(resBitDepth)
                 strBitDepth = str(resBitDepth)
             except ExecuteError:

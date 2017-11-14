@@ -17,18 +17,18 @@ Author: CJS
 Date: 20171108
 """
 
-#TODO: once script stabilizes refine imports to slim imported content
 # IMPORTS
 import os
 from sys import exit
 from arcpy import management
 from arcpy import env
 from arcpy import SpatialReference
-from arcpy import GetMessages
-from arcpy import ExecuteError
 from datetime import date
 import ImageClass
 from UtilityClass import UtilityClassFunctionality
+    # importing below so that decorator method does not have to import on first use
+from arcpy import GetMessages
+from arcpy import ExecuteError
 
 # VARIABLES
     # General
@@ -79,7 +79,8 @@ except:
 # FUNCTIONS
 @UtilityClassFunctionality.captureAndPrintGeoprocessingErrors
 def runESRIGPTool(func, *args, **kwargs):
-    """"""
+    """Pass ESRI geoprocessing function and arguements through Decorator containing error handling functionality"""
+
     return func(*args, **kwargs)
 
 # FUNCTIONALITY
