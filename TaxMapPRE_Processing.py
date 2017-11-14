@@ -34,7 +34,7 @@ Date: 20171108
 # Imports
 from sys import exit
 import os
-import arcpy
+from arcpy import Describe, ExecuteError, GetMessages, management
 import shutil
 from datetime import date
 from UtilityClass import UtilityClassFunctionality
@@ -151,6 +151,7 @@ print strPSA_Processing
     # Move all files to master location
 try:
     for image in lsImageObjects:
+
         # Create string for new path, with a lowercase file name for standardizing moved image files, and check for existence to avoid error.
         strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.getFileName_and_Extension().lower())
         if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
@@ -158,7 +159,6 @@ try:
             exit()
         elif image.getFileExtension_lower() in lsAcceptableExtensionsForImageFilesOfInterest:
             image.setFilePath_Moved(strFullNewDestinationPathForFile_lowerfilename)
-            # print "original: {}, destination: {}".format(image.getFilePath_Original(), image.getFilePath_Moved())
             shutil.move(image.getFilePath_Original(), image.getFilePath_Moved())
         else:
             continue
@@ -183,11 +183,11 @@ try:
 
             # Get the bit depth
             try:
-                resBitDepth = arcpy.GetRasterProperties_management(in_raster=image.getFilePath_Moved(), property_type="VALUETYPE") # GetRasterProperties Returns a Results Object
+                resBitDepth = management.GetRasterProperties(in_raster=image.getFilePath_Moved(), property_type="VALUETYPE") # GetRasterProperties Returns a Results Object
                 # UtilityClassFunctionality.examineResultObject(resBitDepth)
                 strBitDepth = str(resBitDepth)
-            except arcpy.ExecuteError:
-                print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),arcpy.GetMessages(2))
+            except ExecuteError:
+                print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2))
                 strBitDepth = strError
             except Exception as e:
                 strBitDepth = strError
@@ -195,10 +195,10 @@ try:
 
             # Get the spatial reference
             try:
-                spatrefProjectionName = arcpy.Describe(image.getFilePath_Moved()).spatialReference
+                spatrefProjectionName = Describe(image.getFilePath_Moved()).spatialReference
                 strProjectionName = str(spatrefProjectionName.name)
-            except arcpy.ExecuteError:
-                print strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),arcpy.GetMessages(2))
+            except ExecuteError:
+                print strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2))
                 strProjectionName = strError
             except Exception as e:
                 strProjectionName = strError
