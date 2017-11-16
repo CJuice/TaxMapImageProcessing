@@ -8,8 +8,8 @@ class Image(object):
         """
         Instantiate an image object.
 
-        :param strFileDirname:
-        :param strNameCombo:
+        :param strFileDirname: Directory path
+        :param strNameCombo: File name and extension
         """
         self.strFileDirectoryPath = strFileDirname
         self.strFileName_and_Extension = strNameCombo
@@ -42,12 +42,15 @@ class Image(object):
         else:
             self.strFileExtension_lower = lsFileParts[-1].lower()
 
-    def setBitDepth(self):
+    def setBitDepth(self, resultObject):
         """
         Set the Bit Depth of the .tif image
 
+        :param resultObject: Result object from GetRasterProperties tool
         :return:
         """
+        self.intBitDepth = int(str(resultObject))
+
 
     def setFilePath_Moved(self, strNewMasterImageCollectionFolderPath):
         """
@@ -98,3 +101,16 @@ class Image(object):
         :return: String path
         """
         return self.strFilePath_Moved
+
+    def getBitDepthPlainLanguage(self):
+        """
+
+        :return:
+        """
+        dictBitDepthPlainLanguage = {0: "1-bit", 1: "2-bit", 2: "4-bit", 3: "8-bit unsigned integer",
+                                     4: "8-bit signed integer", 5: "16-bit unsigned integer",
+                                     6: "16-bit signed integer", 7: "32-bit unsigned integer",
+                                     8: "32-bit signed integer", 9: "32-bit floating point",
+                                     10: "64-bit double precision", 11: "8-bit complex", 12: "16-bit complex",
+                                     13: "32-bit complex", 14: "64-bit complex"}
+        return dictBitDepthPlainLanguage[self.intBitDepth]

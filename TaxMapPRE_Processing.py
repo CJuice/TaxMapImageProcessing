@@ -169,9 +169,9 @@ except Exception as e:
         # Check the TIF to TFW relation
 for tifFileName in lsFileNamesTIF:
     if tifFileName in lsFileNamesTFW:
-        dictTFWCheck[tifFileName] = 1
+        dictTFWCheck[tifFileName] = True
     else:
-        dictTFWCheck[tifFileName] = 0
+        dictTFWCheck[tifFileName] = False
 
         # Build the tuple of file data for the report file
 dictReportData = {}
@@ -187,7 +187,8 @@ try:
                 resBitDepth = management.GetRasterProperties(in_raster=image.getFilePath_Moved(),
                                                              property_type="VALUETYPE") # Returns a Results Object
                 # UtilityClassFunctionality.examineResultObject(resBitDepth)
-                strBitDepth = str(resBitDepth)
+                image.setBitDepth(resBitDepth)
+                strBitDepth = image.getBitDepthPlainLanguage()
             except ExecuteError:
                 print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2))
                 strBitDepth = strError
