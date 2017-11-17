@@ -3,8 +3,12 @@ class Image(object):
     """
     Object template for each part of the .tif image files (tif, tfw, tif.xml, etc)
     """
+    xRangeWKID26985 = (185218.488100,570274.874800)
+    yRangeWKID26985 = (24686.339700,230946.080000)
+    xRangeWKID2248 = (607670.989729,1870976.818427)
+    yRangeWKID2248 = (80991.766092,757695.597392)
 
-    def __init__(self, strFileDirname, strNameCombo):
+    def __init__(self, strFileDirname, strNameCombo, strNewConsolidatedImageFolderPath):
         """
         Instantiate an image object.
 
@@ -13,13 +17,27 @@ class Image(object):
         """
         self.strFileDirectoryPath = strFileDirname
         self.strFileName_and_Extension = strNameCombo
+        self.strConsolidatedImageFileDirectoryPath = strNewConsolidatedImageFolderPath
         self.strFilePath_Original = os.path.join(strFileDirname, strNameCombo)
+        self.strFilePath_Moved = None
         self.strFileName_lower = None
         self.strFileExtension_lower = None
-        self.strHasTFW = False
+        self.boolHasTFW = False
         self.intBitDepth = -99
         self.strProjection = None
-        self.strFilePath_Moved = None
+        self.floatTFW_XCoord = 0.0
+        self.floatTFW_YCoord = 0.0
+        self.strPossibleUnits = None
+
+    # METHODS
+    def detectPossibleProjectionUnits(self):
+        (x,y) = (self.floatTFW_XCoord,self.floatTFW_YCoord)
+        if (x > Image.xRangeWKID26985[0] and x < Image.xRangeWKID26985[1]) and (y > Image.yRangeWKID26985[0] and y < Image.yRangeWKID26985[1]):
+            self.strPossibleUnits = "METERS"
+        elif (x > Image.xRangeWKID2248[0] and x < Image.xRangeWKID2248[1]) and (y > Image.yRangeWKID2248[0] and y < Image.yRangeWKID2248[1]):
+            self.strPossibleUnits = "FEET"
+        else:
+            self.strPossibleUnits = "OTHER"
 
     # SETTERS
     def setFileName_lower(self):
@@ -59,7 +77,22 @@ class Image(object):
         :param strNewMasterImageCollectionFolderPath:
         :return:
         """
-        self.strFilePath_Moved = os.path.join(strNewMasterImageCollectionFolderPath)
+        # self.strDestinationFilePathDirectory_Moved = os.path.join(strNewMasterImageCollectionFolderPath)
+        self.strFilePath_Moved = strNewMasterImageCollectionFolderPath
+
+    def setHasTFW(self, booleanValue):
+        self.boolHasTFW = booleanValue
+
+    def setCoordinatesFromTFW(self):
+        tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
+        strTFWPath = os.path.join(self.strConsolidatedImageFileDirectoryPath, tfwFileNameAndExtension)
+        lsFileLines = []
+        with open(strTFWPath) as fOpen:
+            for line in fOpen:
+                line = line.rstrip()
+                lsFileLines.append(line)
+        self.floatTFW_XCoord = float(lsFileLines[4])
+        self.floatTFW_YCoord = float(lsFileLines[5])
 
     # GETTERS
     def getFilePath_Original(self):
@@ -114,3 +147,9 @@ class Image(object):
                                      10: "64-bit double precision", 11: "8-bit complex", 12: "16-bit complex",
                                      13: "32-bit complex", 14: "64-bit complex"}
         return dictBitDepthPlainLanguage[self.intBitDepth]
+
+    def getHasTFW(self):
+        return self.boolHasTFW
+
+    def getPossibleUnits(self):
+        return self.strPossibleUnits

@@ -57,6 +57,7 @@ strFileNameHeader = "Filename_lowercase"
 strHasTFWHeader = "HasTFW"
 strBitDepthHeader = "BitDepth"
 strProjectionHeader = "Projection"
+strFeetVsMetersVsOtherHeader = "TFW_SuggestedUnit"
     # Input prompt messages
 strPromptForImageDirectoryPath = "Paste the path for the directory of .tif files you want to process\n>"
 strPromptForNewImageDirectoryPath = "Paste the path where a new folder will be created and will hold a copy of all images for processing\n>"
@@ -118,7 +119,7 @@ try:
     for (dirname, dirs, files) in os.walk(strInputFileDirectory):
         for eachFile in files:
             # Build image object, store in list, and set properties
-            objImage = ImageClass.Image(dirname, str(eachFile))
+            objImage = ImageClass.Image(dirname, str(eachFile), strNewMasterImageCollectionFolderPath)
             objImage.setFileName_lower()
             objImage.setFileExtension_lower()
             lsImageObjects.append(objImage)
@@ -179,6 +180,7 @@ try:
     for image in lsImageObjects:
         strImageObjectExtension = image.getFileExtension_lower()
         if strImageObjectExtension == "tif":
+            image.setHasTFW(dictTFWCheck.get(image.getFileName_lower()))
 
             # NOTE: For the next two operations the decorator is not used because the process needs to continue even
             #       on error. The report file documents all including Errors.
@@ -207,8 +209,13 @@ try:
                 strProjectionName = strError
                 print e
 
+            # Determine projection units
+            if image.getHasTFW():
+                image.setCoordinatesFromTFW()
+                image.detectPossibleProjectionUnits()
+
             # Build tuple (HasTFW, BitDepth, Projection)
-            tupFileData = (dictTFWCheck.get(image.getFileName_lower()), strBitDepth, strProjectionName)
+            tupFileData = (image.getHasTFW(), strBitDepth, strProjectionName, image.getPossibleUnits())
             dictReportData[image.getFileName_lower()] = tupFileData
         else:
             continue
@@ -220,9 +227,9 @@ strReportFileName = "{}{}".format(strDateTodayNoDashes, strReportFileEnding)
 strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
 try:
     with open(strReportFilePath,'w') as fReportFile:
-        fReportFile.write("{},{},{},{}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader))
+        fReportFile.write("{},{},{},{},{}\n".format(strFileNameHeader, strHasTFWHeader, strBitDepthHeader, strProjectionHeader, strFeetVsMetersVsOtherHeader))
         for key,value in dictReportData.iteritems():
-            fReportFile.write("{},{},{},{}\n".format(key,value[0],value[1],value[2]))
+            fReportFile.write("{},{},{},{},{}\n".format(key, value[0], value[1], value[2], value[3]))
 except Exception as e:
     print strErrorMsgOpeningWritingCSVFileFail.format(e)
     exit()
