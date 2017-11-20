@@ -28,9 +28,19 @@ class Image(object):
         self.floatTFW_XCoord = 0.0
         self.floatTFW_YCoord = 0.0
         self.strPossibleUnits = None
+        self.lsTFWContents = []
+        self.tupXYPixelSize = None
 
     # METHODS
-    def detectPossibleProjectionUnits(self):
+    def storeTFWContentsInList(self):
+        tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
+        strTFWPath = os.path.join(self.strConsolidatedImageFileDirectoryPath, tfwFileNameAndExtension)
+        with open(strTFWPath) as fOpen:
+            for line in fOpen:
+                line = line.rstrip()
+                self.lsTFWContents.append(line)
+
+    def detectPossibleProjectionUnitsFromTFWList(self):
         (x,y) = (self.floatTFW_XCoord,self.floatTFW_YCoord)
         if (x > Image.xRangeWKID26985[0] and x < Image.xRangeWKID26985[1]) and (y > Image.yRangeWKID26985[0] and y < Image.yRangeWKID26985[1]):
             self.strPossibleUnits = "METERS"
@@ -83,16 +93,12 @@ class Image(object):
     def setHasTFW(self, booleanValue):
         self.boolHasTFW = booleanValue
 
-    def setCoordinatesFromTFW(self):
-        tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
-        strTFWPath = os.path.join(self.strConsolidatedImageFileDirectoryPath, tfwFileNameAndExtension)
-        lsFileLines = []
-        with open(strTFWPath) as fOpen:
-            for line in fOpen:
-                line = line.rstrip()
-                lsFileLines.append(line)
-        self.floatTFW_XCoord = float(lsFileLines[4])
-        self.floatTFW_YCoord = float(lsFileLines[5])
+    def setXYCoordinatesUpperLeftCornerOfImageFromTFWList(self):
+        self.floatTFW_XCoord = float(self.lsTFWContents[4])
+        self.floatTFW_YCoord = float(self.lsTFWContents[5])
+
+    def setXYPixelSizeFromTFWList(self):
+        self.tupXYPixelSize = (self.lsTFWContents[0],self.lsTFWContents[3])
 
     # GETTERS
     def getFilePath_Original(self):
@@ -153,3 +159,6 @@ class Image(object):
 
     def getPossibleUnits(self):
         return self.strPossibleUnits
+
+    def getPixelDimensionsTuple(self):
+        return self.tupXYPixelSize
