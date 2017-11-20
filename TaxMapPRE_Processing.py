@@ -21,6 +21,8 @@ Step through all Image Objects.
 Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
 Check the bit depth of each .tif .
 Check the projection.
+Check the units (meters/feet/other).
+Check the pixel dimensions.
 Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
 Move all files to master location
 Build the report data.

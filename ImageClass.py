@@ -33,6 +33,11 @@ class Image(object):
 
     # METHODS
     def storeTFWContentsInList(self):
+        """
+        Open a .tfw file, read the contents, store in a list for later access.
+
+        :return:
+        """
         tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
         strTFWPath = os.path.join(self.strConsolidatedImageFileDirectoryPath, tfwFileNameAndExtension)
         with open(strTFWPath) as fOpen:
@@ -41,6 +46,11 @@ class Image(object):
                 self.lsTFWContents.append(line)
 
     def detectPossibleProjectionUnitsFromTFWList(self):
+        """
+        Determine the units of the image dimensions and location through the range of values for the x and y coordinates.
+
+        :return:
+        """
         (x,y) = (self.floatTFW_XCoord,self.floatTFW_YCoord)
         if (x > Image.xRangeWKID26985[0] and x < Image.xRangeWKID26985[1]) and (y > Image.yRangeWKID26985[0] and y < Image.yRangeWKID26985[1]):
             self.strPossibleUnits = "METERS"
@@ -91,13 +101,30 @@ class Image(object):
         self.strFilePath_Moved = strNewMasterImageCollectionFolderPath
 
     def setHasTFW(self, booleanValue):
+        """
+        Set the boolean value indicating a TFW file is or is not present.
+
+        :param booleanValue:
+        :return:
+        """
         self.boolHasTFW = booleanValue
 
     def setXYCoordinatesUpperLeftCornerOfImageFromTFWList(self):
+        """
+        Set the x and y coordinate values.
+
+        :return:
+        """
         self.floatTFW_XCoord = float(self.lsTFWContents[4])
         self.floatTFW_YCoord = float(self.lsTFWContents[5])
 
     def setXYPixelSizeFromTFWList(self):
+        """
+        Set the string representatio of the x and y pixel dimensions.
+
+        For writing to the report file.
+        :return:
+        """
         if abs(float(self.lsTFWContents[0])) == abs(float(self.lsTFWContents[3])):
             self.strXYPixelSize = "{}".format(abs(float(self.lsTFWContents[0])))
         else:
@@ -158,10 +185,24 @@ class Image(object):
         return dictBitDepthPlainLanguage[self.intBitDepth]
 
     def getHasTFW(self):
+        """
+        Get the boolean value indicating the image has or has not a .tfw file.
+
+        :return:
+        """
         return self.boolHasTFW
 
     def getPossibleUnits(self):
+        """
+        Get the dimension units measurement value.
+
+        :return:
+        """
         return self.strPossibleUnits
 
     def getPixelDimensions(self):
+        """
+        Get the string representation of the pixel dimensions.
+        :return:
+        """
         return self.strXYPixelSize

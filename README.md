@@ -16,6 +16,8 @@ Step 1:
     2. If each image (.tif) has an associated world file (.tfw).
     3. The bit depth of each image.
     4. The projection of each image.
+    5. The units of the raster (feet/meters/other).
+    6. The dimensions of the pixels.
 * Actions
     1. Move all image files to a new consolidated location
 * Outputs
