@@ -120,7 +120,7 @@ class Image(object):
 
     def setXYPixelSizeFromTFWList(self):
         """
-        Set the string representatio of the x and y pixel dimensions.
+        Set the string representation of the x and y pixel dimensions.
 
         For writing to the report file.
         :return:
@@ -173,8 +173,9 @@ class Image(object):
 
     def getBitDepthPlainLanguage(self):
         """
+        Get the bit depth plain language description.
 
-        :return:
+        :return: String
         """
         dictBitDepthPlainLanguage = {0: "1-bit", 1: "2-bit", 2: "4-bit", 3: "8-bit unsigned integer",
                                      4: "8-bit signed integer", 5: "16-bit unsigned integer",
@@ -188,7 +189,7 @@ class Image(object):
         """
         Get the boolean value indicating the image has or has not a .tfw file.
 
-        :return:
+        :return: Boolean
         """
         return self.boolHasTFW
 
@@ -196,13 +197,14 @@ class Image(object):
         """
         Get the dimension units measurement value.
 
-        :return:
+        :return: String
         """
         return self.strPossibleUnits
 
     def getPixelDimensions(self):
         """
         Get the string representation of the pixel dimensions.
-        :return:
+
+        :return:String
         """
         return self.strXYPixelSize

@@ -18,7 +18,7 @@ class UtilityClassFunctionality(object):
 
         Static method in UtilityClass
         :param strRawInputPromptSentence: The prompting language to help user
-        :return:
+        :return: String
         """
         strUserInput = None
         while True:
@@ -61,10 +61,10 @@ class UtilityClassFunctionality(object):
     @staticmethod
     def captureAndPrintGeoprocessingErrors(func):
         """
-        Wraps a function with try and except. Decorator.
+        Wrap a function with try and except. Decorator.
 
         :param func: The ESRI geoprocessing function object
-        :return: The resulting value from the tool on successful run, or exit on fail
+        :return: The resulting value from the tool on successful run, or exit on fail.
         """
         from arcpy import ExecuteError, GetMessages
         def f(*args, **kwargs):
