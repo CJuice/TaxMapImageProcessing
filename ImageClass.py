@@ -29,7 +29,7 @@ class Image(object):
         self.floatTFW_YCoord = 0.0
         self.strPossibleUnits = None
         self.lsTFWContents = []
-        self.tupXYPixelSize = None
+        self.strXYPixelSize = None
 
     # METHODS
     def storeTFWContentsInList(self):
@@ -98,7 +98,10 @@ class Image(object):
         self.floatTFW_YCoord = float(self.lsTFWContents[5])
 
     def setXYPixelSizeFromTFWList(self):
-        self.tupXYPixelSize = (self.lsTFWContents[0],self.lsTFWContents[3])
+        if abs(float(self.lsTFWContents[0])) == abs(float(self.lsTFWContents[3])):
+            self.strXYPixelSize = "{}".format(abs(float(self.lsTFWContents[0])))
+        else:
+            self.strXYPixelSize = "{} \ {}".format(self.lsTFWContents[0],self.lsTFWContents[3])
 
     # GETTERS
     def getFilePath_Original(self):
@@ -160,5 +163,5 @@ class Image(object):
     def getPossibleUnits(self):
         return self.strPossibleUnits
 
-    def getPixelDimensionsTuple(self):
-        return self.tupXYPixelSize
+    def getPixelDimensions(self):
+        return self.strXYPixelSize

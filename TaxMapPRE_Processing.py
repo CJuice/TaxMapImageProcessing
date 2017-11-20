@@ -220,7 +220,7 @@ try:
                 image.setXYPixelSizeFromTFWList()
 
             # Build tuple (HasTFW, BitDepth, Projection)
-            tupFileData = (image.getHasTFW(), strBitDepth, strProjectionName, image.getPossibleUnits(), image.getPixelDimensionsTuple())
+            tupFileData = (image.getHasTFW(), strBitDepth, strProjectionName, image.getPossibleUnits(), image.getPixelDimensions())
             dictReportData[image.getFileName_lower()] = tupFileData
         else:
             continue
