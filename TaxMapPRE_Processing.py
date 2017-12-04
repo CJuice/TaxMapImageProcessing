@@ -31,15 +31,16 @@ Provide the user an opportunity to immediately move on to Step 2 after reviewing
 Author: CJS
 Date: 20171108
 """
-
 # Imports
 from sys import exit
 import os
 from arcpy import Describe, ExecuteError, GetMessages, management
 import shutil
+import datetime
 from datetime import date
 from UtilityClass import UtilityClassFunctionality
 import ImageClass
+import logging
 
 # VARIABLES
     # General
@@ -83,6 +84,17 @@ lsAcceptableExtensionsForImageFilesOfInterest = ["tif","tfw","tif.xml"]
 lsFileNamesTIF = []
 lsFileNamesTFW = []
 dictTFWCheck = {}
+    # Logging setup
+strLogFileName = "LOG_TaxMapProcessing.log"
+tupTodayDateTime = datetime.datetime.utcnow().timetuple()
+strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
+                                                          , tupTodayDateTime[1]
+                                                          , tupTodayDateTime[2]
+                                                          , tupTodayDateTime[3]
+                                                          , tupTodayDateTime[4]
+                                                          , tupTodayDateTime[5])
+logging.basicConfig(filename=strLogFileName,level=logging.INFO)
+logging.info(" {} - Initiated Pre-Processing".format(strTodayDateTimeForLogging))
 
 # INPUTS
     # Get the directory of the tif files to walk through
@@ -90,7 +102,8 @@ try:
     strInputFileDirectory = UtilityClassFunctionality.rawInputBasicChecks(strPromptForImageDirectoryPath)
     UtilityClassFunctionality.checkPathExists(strInputFileDirectory)
 except Exception as e:
-    print strErrorMsgImageFileDirectoryInvalid.format(e)
+    print(strErrorMsgImageFileDirectoryInvalid.format(e))
+    logging.error(strErrorMsgImageFileDirectoryInvalid.format(e))
     exit()
 
     # Get the path where a new folder will be created. The folder will hold all image files.
@@ -103,13 +116,16 @@ try:
             os.mkdir(strNewMasterImageCollectionFolderPath)
             strReportFileLocation = strNewMasterImageCollectionFolderPath  # Report file will go in with images
         except Exception as e:
-            print strErrorMsgNewFolderCreationFail.format(e)
+            print(strErrorMsgNewFolderCreationFail.format(e))
+            logging.error(strErrorMsgNewFolderCreationFail.format(e))
             exit()
     else:
-        print strErrorMsgPathDoesNotExist
+        print(strErrorMsgPathDoesNotExist)
+        logging.error(strErrorMsgPathDoesNotExist)
         exit()
 except Exception as e:
-    print strErrorMsgNewImageDirectoryInvalidOrExists.format(e)
+    print(strErrorMsgNewImageDirectoryInvalidOrExists.format(e))
+    logging.error(strErrorMsgNewImageDirectoryInvalidOrExists.format(e))
     exit()
 
     # Step through the directory and all subdirectories.
@@ -136,9 +152,11 @@ try:
             else:
                 continue
     print strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions))
+    logging.info(strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions)))
     strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(strPromptForProceedWithKnownPresentFileExtensions)
 except Exception as e:
     print strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e)
+    logging.error(strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e))
     exit()
 
     # Check user entry to see if they are okay with the files about to be processed.
@@ -159,6 +177,7 @@ try:
         strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.getFileName_and_Extension().lower())
         if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
             print strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original())
+            logging.error(strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original()))
             exit()
         elif image.getFileExtension_lower() in lsAcceptableExtensionsForImageFilesOfInterest:
             image.setFilePath_Moved(strFullNewDestinationPathForFile_lowerfilename)
@@ -167,6 +186,7 @@ try:
             continue
 except Exception as e:
     print strErrorMsgMovingFilesFail.format(e)
+    logging.error(strErrorMsgMovingFilesFail.format(e))
     exit()
 
     # Build the report data
@@ -183,7 +203,6 @@ try:
     for image in lsImageObjects:
         strImageObjectExtension = image.getFileExtension_lower()
         if strImageObjectExtension == "tif":
-            #TODO: store tfw contents, set pixel size
             image.setHasTFW(dictTFWCheck.get(image.getFileName_lower()))
 
             # NOTE: For the next two operations the decorator is not used because the process needs to continue even
@@ -197,10 +216,12 @@ try:
                 strBitDepth = image.getBitDepthPlainLanguage()
             except ExecuteError:
                 print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2))
+                logging.warning(strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2)))
                 strBitDepth = strError
             except Exception as e:
                 strBitDepth = strError
                 print e
+                logging.warning(e)
 
             # Get the spatial reference
             try:
@@ -208,10 +229,12 @@ try:
                 strProjectionName = str(spatrefProjectionName.name)
             except ExecuteError:
                 print strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2))
+                logging.warning(strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2)))
                 strProjectionName = strError
             except Exception as e:
                 strProjectionName = strError
                 print e
+                logging.warning(e)
 
             # Store TFW contents in list, set X,Y coordinates of upper left corner of image, determine projection units,
             #   and determine pixel dimensions
@@ -228,6 +251,7 @@ try:
             continue
 except Exception as e:
     print strErrorMsgBuildingReportFail.format(e)
+    logging.error(strErrorMsgBuildingReportFail.format(e))
 
     # Create and Write the report file for use in excel etc.
 strReportFileName = "{}{}".format(strDateTodayNoDashes, strReportFileEnding)
@@ -239,6 +263,7 @@ try:
             fReportFile.write("{},{},{},{},{},{}\n".format(key, value[0], value[1], value[2], value[3], value[4]))
 except Exception as e:
     print strErrorMsgOpeningWritingCSVFileFail.format(e)
+    logging.error(strErrorMsgOpeningWritingCSVFileFail.format(e))
     exit()
 
 print strPSA_ProcessingCompleteSeeReport.format(strReportFilePath)
@@ -255,4 +280,5 @@ try:
         print strPSAProcessComplete
 except Exception as e:
     print e
+    logging.error(e)
     exit()

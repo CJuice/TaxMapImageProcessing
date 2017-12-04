@@ -66,15 +66,18 @@ class UtilityClassFunctionality(object):
         :param func: The ESRI geoprocessing function object
         :return: The resulting value from the tool on successful run, or exit on fail.
         """
+        import logging
         from arcpy import ExecuteError, GetMessages
         def f(*args, **kwargs):
             try:
                 resultValue = func(*args, **kwargs)
             except ExecuteError:
                 print "Geoprocessing Error.\n{}".format(GetMessages(2))
+                logging.error("UtilityClass.captureAndPrintGeoprocessingErrors: Geoprocessing Error.\n{}".format(GetMessages(2)))
                 return exit()
             except Exception as e:
                 print e
+                logging.error("UtilityClass.captureAndPrintGeoprocessingErrors: {}".format(e))
                 return exit()
             return resultValue
         return f

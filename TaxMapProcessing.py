@@ -16,16 +16,17 @@ Alert user to images that did not reproject
 Author: CJS
 Date: 20171108
 """
-
 # IMPORTS
 import os
 from sys import exit
 from arcpy import management
 from arcpy import env
 from arcpy import SpatialReference
+import datetime
 from datetime import date
 import ImageClass
 from UtilityClass import UtilityClassFunctionality
+import logging
     # importing below so that decorator method does not have to import on first use
 from arcpy import GetMessages
 from arcpy import ExecuteError
@@ -57,6 +58,17 @@ strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and 
     # Lists
 lsImageObjects = []
 lsUnsuccessfulImageReProjections = []
+    # Logging setup
+strLogFileName = "LOG_TaxMapProcessing.log"
+tupTodayDateTime = datetime.datetime.utcnow().timetuple()
+strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
+                                                          , tupTodayDateTime[1]
+                                                          , tupTodayDateTime[2]
+                                                          , tupTodayDateTime[3]
+                                                          , tupTodayDateTime[4]
+                                                          , tupTodayDateTime[5])
+logging.basicConfig(filename=strLogFileName,level=logging.INFO)
+logging.info(" {} - Initiated Processing".format(strTodayDateTimeForLogging))
 
 # INPUTS
     # Get the path for the consolidated images files folder
@@ -65,6 +77,7 @@ try:
     UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
 except:
     print strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath)
+    logging.error(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath))
     exit()
 
     # Get the geodatabase workspace from the user. if valid set workspace.
@@ -74,6 +87,7 @@ try:
     env.workspace = strGeodatabaseWorkspacePath
 except:
     print strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath)
+    logging.error(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath))
     exit()
 
 # FUNCTIONS
@@ -121,6 +135,7 @@ try:
                 continue
 except Exception as e:
     print strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e)
+    logging.error(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e))
     exit()
 
     # Create Raster Catalog
