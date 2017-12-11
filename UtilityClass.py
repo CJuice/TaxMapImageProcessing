@@ -96,3 +96,25 @@ class UtilityClassFunctionality(object):
         else:
             print "Path does not exist."
             return exit()
+
+    @staticmethod
+    def printAndLog(strMessage, strLogLevel):
+        """
+
+        :param strMessage:
+        :param strLogLevel:
+        :return:
+        """
+        import logging
+        strInfo = "info"
+        strWarning = "warning"
+        strError = "error"
+        strMessage = strMessage.strip("\n")
+        if strLogLevel is strInfo:
+            logging.info(strMessage)
+        elif strLogLevel is strWarning:
+            logging.warning(strMessage)
+        elif strLogLevel is strError:
+            logging.warning(strMessage)
+        print(strMessage)
+        return

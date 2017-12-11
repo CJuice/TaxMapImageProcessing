@@ -59,6 +59,9 @@ strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and 
 lsImageObjects = []
 lsUnsuccessfulImageReProjections = []
     # Logging setup
+strInfo = "info"
+strWarning = "warning"
+strError = "error"
 strLogFileName = "LOG_TaxMapProcessing.log"
 tupTodayDateTime = datetime.datetime.utcnow().timetuple()
 strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
@@ -76,8 +79,7 @@ try:
     strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
     UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
 except:
-    print strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath)
-    logging.error(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath))
+    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath), strError)
     exit()
 
     # Get the geodatabase workspace from the user. if valid set workspace.
@@ -86,8 +88,7 @@ try:
     UtilityClassFunctionality.checkPathExists(strGeodatabaseWorkspacePath)
     env.workspace = strGeodatabaseWorkspacePath
 except:
-    print strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath)
-    logging.error(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath))
+    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath), strError)
     exit()
 
 # FUNCTIONS
@@ -110,13 +111,13 @@ try:
                 # Build image object, set properties, and store in list
                 objImage = ImageClass.Image(dirname, str(eachFile),strConsolidatedImageFileFolderPath)
                 objImage.setFileName_lower()
-                print strPSADefiningProjection.format(objImage.getFileName_lower())
-               
+                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.getFileName_lower()), strInfo)
+
                 # Define Projection
                 runESRIGPTool(management.DefineProjection,
                               in_dataset=objImage.getFilePath_Original(),
                               coor_system=intDefineProjectionCode)
-                print strPSAReProjecting.format(objImage.getFileName_lower())
+                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.getFileName_lower()), strInfo)
 
                 # Project Raster
                 try:
@@ -134,8 +135,7 @@ try:
             else:
                 continue
 except Exception as e:
-    print strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e)
-    logging.error(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e), strError)
     exit()
 
     # Create Raster Catalog
@@ -151,7 +151,7 @@ runESRIGPTool(management.CreateRasterCatalog,
               raster_management_type=strRasterManagementType,
               template_raster_catalog=None)
 
-print strPSAWorkspaceToRasterCatalog
+UtilityClassFunctionality.printAndLog(strPSAWorkspaceToRasterCatalog, strInfo)
 
     # Load raster datasets into raster catalog
 runESRIGPTool(management.WorkspaceToRasterCatalog,
@@ -162,8 +162,8 @@ runESRIGPTool(management.WorkspaceToRasterCatalog,
 
     # Alert user to images that did not reproject
 if len(lsUnsuccessfulImageReProjections) != 0:
-    print strPSAListOfFailedReProjections.format(lsUnsuccessfulImageReProjections)
+    UtilityClassFunctionality.printAndLog(strPSAListOfFailedReProjections.format(lsUnsuccessfulImageReProjections), strInfo)
 else:
     pass
 
-print strPSAProcessComplete
+UtilityClassFunctionality.printAndLog(strPSAProcessComplete, strInfo)

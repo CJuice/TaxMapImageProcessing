@@ -85,6 +85,9 @@ lsFileNamesTIF = []
 lsFileNamesTFW = []
 dictTFWCheck = {}
     # Logging setup
+strInfo = "info"
+strWarning = "warning"
+strError = "error"
 strLogFileName = "LOG_TaxMapProcessing.log"
 tupTodayDateTime = datetime.datetime.utcnow().timetuple()
 strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
@@ -102,8 +105,7 @@ try:
     strInputFileDirectory = UtilityClassFunctionality.rawInputBasicChecks(strPromptForImageDirectoryPath)
     UtilityClassFunctionality.checkPathExists(strInputFileDirectory)
 except Exception as e:
-    print(strErrorMsgImageFileDirectoryInvalid.format(e))
-    logging.error(strErrorMsgImageFileDirectoryInvalid.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgImageFileDirectoryInvalid.format(e), strError)
     exit()
 
     # Get the path where a new folder will be created. The folder will hold all image files.
@@ -116,16 +118,13 @@ try:
             os.mkdir(strNewMasterImageCollectionFolderPath)
             strReportFileLocation = strNewMasterImageCollectionFolderPath  # Report file will go in with images
         except Exception as e:
-            print(strErrorMsgNewFolderCreationFail.format(e))
-            logging.error(strErrorMsgNewFolderCreationFail.format(e))
+            UtilityClassFunctionality.printAndLog(strErrorMsgNewFolderCreationFail.format(e), strError)
             exit()
     else:
-        print(strErrorMsgPathDoesNotExist)
-        logging.error(strErrorMsgPathDoesNotExist)
+        UtilityClassFunctionality.printAndLog(strErrorMsgPathDoesNotExist, strError)
         exit()
 except Exception as e:
-    print(strErrorMsgNewImageDirectoryInvalidOrExists.format(e))
-    logging.error(strErrorMsgNewImageDirectoryInvalidOrExists.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgNewImageDirectoryInvalidOrExists.format(e), strError)
     exit()
 
 # FUNCTIONALITY
@@ -152,17 +151,15 @@ try:
                 lsFileNamesTIF.append(objImage.getFileName_lower())
             else:
                 continue
-    print strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions))
-    logging.info(strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions)))
+    UtilityClassFunctionality.printAndLog(strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions)), strInfo)
     strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(strPromptForProceedWithKnownPresentFileExtensions)
 except Exception as e:
-    print strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e)
-    logging.error(strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e), strError)
     exit()
 
     # Check user entry to see if they are okay with the files about to be processed.
 UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
-print strPSA_Processing
+UtilityClassFunctionality.printAndLog(strPSA_Processing, strInfo)
 
     # Step through all Image Objects.
     #   Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
@@ -176,8 +173,7 @@ try:
         # Create string for new path, with a lowercase file name for standardizing moved image files, and check for existence to avoid error.
         strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.getFileName_and_Extension().lower())
         if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
-            print strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original())
-            logging.error(strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original()))
+            UtilityClassFunctionality.printAndLog(strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original()), strError)
             exit()
         elif image.getFileExtension_lower() in lsAcceptableExtensionsForImageFilesOfInterest:
             image.setFilePath_Moved(strFullNewDestinationPathForFile_lowerfilename)
@@ -185,8 +181,7 @@ try:
         else:
             continue
 except Exception as e:
-    print strErrorMsgMovingFilesFail.format(e)
-    logging.error(strErrorMsgMovingFilesFail.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgMovingFilesFail.format(e), strError)
     exit()
 
     # Build the report data
@@ -215,26 +210,22 @@ try:
                 image.setBitDepth(resBitDepth)
                 strBitDepth = image.getBitDepthPlainLanguage()
             except ExecuteError:
-                print strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2))
-                logging.warning(strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2)))
+                UtilityClassFunctionality.printAndLog(strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2)), strWarning)
                 strBitDepth = strError
             except Exception as e:
                 strBitDepth = strError
-                print e
-                logging.warning(e)
+                UtilityClassFunctionality.printAndLog(e, strWarning)
 
             # Get the spatial reference
             try:
                 spatrefProjectionName = Describe(image.getFilePath_Moved()).spatialReference
                 strProjectionName = str(spatrefProjectionName.name)
             except ExecuteError:
-                print strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2))
-                logging.warning(strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2)))
+                UtilityClassFunctionality.printAndLog(strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2)), strWarning)
                 strProjectionName = strError
             except Exception as e:
                 strProjectionName = strError
-                print e
-                logging.warning(e)
+                UtilityClassFunctionality.printAndLog(e, strWarning)
 
             # Store TFW contents in list, set X,Y coordinates of upper left corner of image, determine projection units,
             #   and determine pixel dimensions
@@ -250,8 +241,7 @@ try:
         else:
             continue
 except Exception as e:
-    print strErrorMsgBuildingReportFail.format(e)
-    logging.error(strErrorMsgBuildingReportFail.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgBuildingReportFail.format(e), strError)
 
     # Create and Write the report file for use in excel etc.
 strReportFileName = "{}{}".format(strDateTodayNoDashes, strReportFileEnding)
@@ -262,12 +252,11 @@ try:
         for key,value in dictReportData.iteritems():
             fReportFile.write("{},{},{},{},{},{}\n".format(key, value[0], value[1], value[2], value[3], value[4]))
 except Exception as e:
-    print strErrorMsgOpeningWritingCSVFileFail.format(e)
-    logging.error(strErrorMsgOpeningWritingCSVFileFail.format(e))
+    UtilityClassFunctionality.printAndLog(strErrorMsgOpeningWritingCSVFileFail.format(e), strError)
     exit()
 
-print strPSA_ProcessingCompleteSeeReport.format(strReportFilePath)
-print strPSA_ConsolidatedImageFilesLocation.format(strNewMasterImageCollectionFolderPath)
+UtilityClassFunctionality.printAndLog(strPSA_ProcessingCompleteSeeReport.format(strReportFilePath), strInfo)
+UtilityClassFunctionality.printAndLog(strPSA_ConsolidatedImageFilesLocation.format(strNewMasterImageCollectionFolderPath), strInfo)
 
 # Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 try:
@@ -277,8 +266,7 @@ try:
         import TaxMapProcessing
         TaxMapProcessing
     else:
-        print strPSAProcessComplete
+        UtilityClassFunctionality.printAndLog(strPSAProcessComplete, strInfo)
 except Exception as e:
-    print e
-    logging.error(e)
+    UtilityClassFunctionality.printAndLog(e, strError)
     exit()
