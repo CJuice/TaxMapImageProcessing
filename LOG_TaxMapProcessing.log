@@ -1,0 +1,9 @@
+INFO:root: 2017/12/11 UTC[19:4:16] - Initiated Pre-Processing
+INFO:root:File extensions present in image datasets: ('tfw', 'tif.xml', 'tif')
+INFO:root: 2017/12/11 UTC[19:5:9] - Initiated Processing
+ERROR:root:Error walking directory and creating Image object.
+__init__() takes exactly 4 arguments (3 given)
+INFO:root: 2017/12/11 UTC[19:8:31] - Initiated Processing
+ERROR:root:Error walking directory and creating Image object.
+__init__() takes exactly 4 arguments (3 given)
+INFO:root: 2017/12/11 UTC[19:10:41] - Initiated Processing

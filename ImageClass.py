@@ -14,6 +14,7 @@ class Image(object):
 
         :param strFileDirname: Directory path
         :param strNameCombo: File name and extension
+        :param strNewConsolidatedImageFolderPath: path to consolidated images for processing
         """
         self.strFileDirectoryPath = strFileDirname
         self.strFileName_and_Extension = strNameCombo

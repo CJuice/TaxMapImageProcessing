@@ -108,10 +108,10 @@ try:
             if (str(eachFile)).endswith("tif"):
 
                 # Build image object, set properties, and store in list
-                objImage = ImageClass.Image(dirname, str(eachFile))
+                objImage = ImageClass.Image(dirname, str(eachFile),strConsolidatedImageFileFolderPath)
                 objImage.setFileName_lower()
                 print strPSADefiningProjection.format(objImage.getFileName_lower())
-
+               
                 # Define Projection
                 runESRIGPTool(management.DefineProjection,
                               in_dataset=objImage.getFilePath_Original(),

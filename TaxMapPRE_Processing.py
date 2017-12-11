@@ -128,6 +128,7 @@ except Exception as e:
     logging.error(strErrorMsgNewImageDirectoryInvalidOrExists.format(e))
     exit()
 
+# FUNCTIONALITY
     # Step through the directory and all subdirectories.
     # Create Image Objects for all files.
     # Write every image object filename to a list based on the file extension.
@@ -163,7 +164,6 @@ except Exception as e:
 UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
 print strPSA_Processing
 
-#FUNCTIONALITY
     # Step through all Image Objects.
     #   Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
     #   Check the bit depth of each .tif .

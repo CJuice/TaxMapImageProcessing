@@ -1,3 +1,6 @@
 .idea/
 TFWfileexaminations_Scratch2.py
 TFWfileexaminations_Scratch.py
+.pyc
+*.pyc
+ImageClass.pyc
