@@ -3,11 +3,15 @@ class UtilityClassFunctionality(object):
     Utility methods for use in scripts.
     """
 
+    INFO_LEVEL = "info"
+    WARNING_LEVEL = "warning"
+    ERROR_LEVEL = "error"
+
     def __init__(self):
         """
-        Instantiate UtilityClassFunctionality object
+        Initialize UtilityClassFunctionality object
 
-        As of 20171109 all methods were static.
+        As of 20171109 all custom methods were static.
         """
         pass
 
@@ -53,10 +57,10 @@ class UtilityClassFunctionality(object):
         :return: No return
         """
         lenResult = len(resultObjectFromESRIProcess)
-        print "len: {}".format(lenResult)
+        print("len: {}".format(lenResult))
         for i in range(0,lenResult):
             strTemp = str(resultObjectFromESRIProcess[i])
-            print "\t{}".format(strTemp)
+            print("\t{}".format(strTemp))
 
     @staticmethod
     def captureAndPrintGeoprocessingErrors(func):
@@ -66,18 +70,16 @@ class UtilityClassFunctionality(object):
         :param func: The ESRI geoprocessing function object
         :return: The resulting value from the tool on successful run, or exit on fail.
         """
-        import logging
+
         from arcpy import ExecuteError, GetMessages
         def f(*args, **kwargs):
             try:
                 resultValue = func(*args, **kwargs)
             except ExecuteError:
-                print "Geoprocessing Error.\n{}".format(GetMessages(2))
-                logging.error("UtilityClass.captureAndPrintGeoprocessingErrors: Geoprocessing Error.\n{}".format(GetMessages(2)))
+                UtilityClassFunctionality.printAndLog("UtilityClass.captureAndPrintGeoprocessingErrors: Geoprocessing Error.\n{}".format(GetMessages(2)), UtilityClassFunctionality.ERROR_LEVEL)
                 return exit()
             except Exception as e:
-                print e
-                logging.error("UtilityClass.captureAndPrintGeoprocessingErrors: {}".format(e))
+                UtilityClassFunctionality.printAndLog("UtilityClass.captureAndPrintGeoprocessingErrors: {}".format(e),UtilityClassFunctionality.ERROR_LEVEL)
                 return exit()
             return resultValue
         return f
@@ -94,27 +96,42 @@ class UtilityClassFunctionality(object):
         if os.path.exists(strPath):
             return
         else:
-            print "Path does not exist."
+            print("Path does not exist.")
             return exit()
 
     @staticmethod
     def printAndLog(strMessage, strLogLevel):
         """
+        Print and log any provided message based on the indicated logging level.
 
         :param strMessage:
         :param strLogLevel:
         :return:
         """
         import logging
-        strInfo = "info"
-        strWarning = "warning"
-        strError = "error"
         strMessage = strMessage.strip("\n")
-        if strLogLevel is strInfo:
+        if strLogLevel is UtilityClassFunctionality.INFO_LEVEL:
             logging.info(strMessage)
-        elif strLogLevel is strWarning:
+        elif strLogLevel is UtilityClassFunctionality.WARNING_LEVEL:
             logging.warning(strMessage)
-        elif strLogLevel is strError:
-            logging.warning(strMessage)
+        elif strLogLevel is UtilityClassFunctionality.ERROR_LEVEL:
+            logging.error(strMessage)
         print(strMessage)
         return
+
+    @staticmethod
+    def getDateTimeForLoggingAndPrinting():
+        """
+        Generate a preformatted date and time string for logging and printing purposes.
+
+        :return: String {}/{}/{} UTC[{}:{}:{}] usable in logging, and printing statements if desired
+        """
+        import datetime
+        tupTodayDateTime = datetime.datetime.utcnow().timetuple()
+        strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
+                                                                     , tupTodayDateTime[1]
+                                                                     , tupTodayDateTime[2]
+                                                                     , tupTodayDateTime[3]
+                                                                     , tupTodayDateTime[4]
+                                                                     , tupTodayDateTime[5])
+        return strTodayDateTimeForLogging

@@ -22,7 +22,6 @@ from sys import exit
 from arcpy import management
 from arcpy import env
 from arcpy import SpatialReference
-import datetime
 from datetime import date
 import ImageClass
 from UtilityClass import UtilityClassFunctionality
@@ -59,19 +58,9 @@ strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and 
 lsImageObjects = []
 lsUnsuccessfulImageReProjections = []
     # Logging setup
-strInfo = "info"
-strWarning = "warning"
-strError = "error"
 strLogFileName = "LOG_TaxMapProcessing.log"
-tupTodayDateTime = datetime.datetime.utcnow().timetuple()
-strTodayDateTimeForLogging = "{}/{}/{} UTC[{}:{}:{}]".format(tupTodayDateTime[0]
-                                                          , tupTodayDateTime[1]
-                                                          , tupTodayDateTime[2]
-                                                          , tupTodayDateTime[3]
-                                                          , tupTodayDateTime[4]
-                                                          , tupTodayDateTime[5])
 logging.basicConfig(filename=strLogFileName,level=logging.INFO)
-logging.info(" {} - Initiated Processing".format(strTodayDateTimeForLogging))
+UtilityClassFunctionality.printAndLog(" {} - Initiated Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()))
 
 # INPUTS
     # Get the path for the consolidated images files folder
@@ -79,7 +68,7 @@ try:
     strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
     UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
 except:
-    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath), strError)
+    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
     # Get the geodatabase workspace from the user. if valid set workspace.
@@ -88,7 +77,7 @@ try:
     UtilityClassFunctionality.checkPathExists(strGeodatabaseWorkspacePath)
     env.workspace = strGeodatabaseWorkspacePath
 except:
-    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath), strError)
+    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
 # FUNCTIONS
@@ -111,13 +100,13 @@ try:
                 # Build image object, set properties, and store in list
                 objImage = ImageClass.Image(dirname, str(eachFile),strConsolidatedImageFileFolderPath)
                 objImage.setFileName_lower()
-                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.getFileName_lower()), strInfo)
+                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.getFileName_lower()), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Define Projection
                 runESRIGPTool(management.DefineProjection,
                               in_dataset=objImage.getFilePath_Original(),
                               coor_system=intDefineProjectionCode)
-                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.getFileName_lower()), strInfo)
+                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.getFileName_lower()), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Project Raster
                 try:
@@ -135,7 +124,7 @@ try:
             else:
                 continue
 except Exception as e:
-    UtilityClassFunctionality.printAndLog(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e), strError)
+    UtilityClassFunctionality.printAndLog(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
     # Create Raster Catalog
@@ -151,7 +140,7 @@ runESRIGPTool(management.CreateRasterCatalog,
               raster_management_type=strRasterManagementType,
               template_raster_catalog=None)
 
-UtilityClassFunctionality.printAndLog(strPSAWorkspaceToRasterCatalog, strInfo)
+UtilityClassFunctionality.printAndLog(strPSAWorkspaceToRasterCatalog, UtilityClassFunctionality.INFO_LEVEL)
 
     # Load raster datasets into raster catalog
 runESRIGPTool(management.WorkspaceToRasterCatalog,
@@ -162,8 +151,8 @@ runESRIGPTool(management.WorkspaceToRasterCatalog,
 
     # Alert user to images that did not reproject
 if len(lsUnsuccessfulImageReProjections) != 0:
-    UtilityClassFunctionality.printAndLog(strPSAListOfFailedReProjections.format(lsUnsuccessfulImageReProjections), strInfo)
+    UtilityClassFunctionality.printAndLog(strPSAListOfFailedReProjections.format(lsUnsuccessfulImageReProjections), UtilityClassFunctionality.INFO_LEVEL)
 else:
     pass
 
-UtilityClassFunctionality.printAndLog(strPSAProcessComplete, strInfo)
+UtilityClassFunctionality.printAndLog(strPSAProcessComplete, UtilityClassFunctionality.INFO_LEVEL)
