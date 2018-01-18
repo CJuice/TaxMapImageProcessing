@@ -60,7 +60,7 @@ lsUnsuccessfulImageReProjections = []
     # Logging setup
 strLogFileName = "LOG_TaxMapProcessing.log"
 logging.basicConfig(filename=strLogFileName,level=logging.INFO)
-UtilityClassFunctionality.printAndLog(" {} - Initiated Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()))
+UtilityClassFunctionality.printAndLog(" {} - Initiated Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()), UtilityClassFunctionality.INFO_LEVEL)
 
 # INPUTS
     # Get the path for the consolidated images files folder
@@ -98,21 +98,20 @@ try:
             if (str(eachFile)).endswith("tif"):
 
                 # Build image object, set properties, and store in list
-                objImage = ImageClass.Image(dirname, str(eachFile),strConsolidatedImageFileFolderPath)
-                objImage.setFileName_lower()
-                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.getFileName_lower()), UtilityClassFunctionality.INFO_LEVEL)
+                objImage = ImageClass.Image(dirname, str(eachFile), strConsolidatedImageFileFolderPath)
+                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Define Projection
                 runESRIGPTool(management.DefineProjection,
-                              in_dataset=objImage.getFilePath_Original(),
+                              in_dataset=objImage.strFilePath_Original,
                               coor_system=intDefineProjectionCode)
-                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.getFileName_lower()), UtilityClassFunctionality.INFO_LEVEL)
+                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Project Raster
                 try:
                     runESRIGPTool(management.ProjectRaster,
-                                  in_raster=objImage.getFilePath_Original(),
-                                  out_raster=objImage.getFileName_lower(),
+                                  in_raster=objImage.strFilePath_Original,
+                                  out_raster=objImage.strFileName_lower,
                                   out_coor_system=objSpatialReferenceProjectedRaster,
                                   resampling_type=None,
                                   cell_size=None,
@@ -120,7 +119,7 @@ try:
                                   Registration_Point=None,
                                   in_coor_system=None)
                 except:
-                    lsUnsuccessfulImageReProjections.append(objImage.getFileName_lower())
+                    lsUnsuccessfulImageReProjections.append(objImage.strFileName_lower)
             else:
                 continue
 except Exception as e:

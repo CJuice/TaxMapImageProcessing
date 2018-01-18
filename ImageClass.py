@@ -3,10 +3,10 @@ class Image(object):
     """
     Object template for each part of the .tif image files (tif, tfw, tif.xml, etc)
     """
-    xRangeWKID26985 = (185218.488100,570274.874800)
-    yRangeWKID26985 = (24686.339700,230946.080000)
-    xRangeWKID2248 = (607670.989729,1870976.818427)
-    yRangeWKID2248 = (80991.766092,757695.597392)
+    __X_RANGE_WKID26985 = (185218.488100, 570274.874800)
+    __Y_RANGE_WKID26985 = (24686.339700, 230946.080000)
+    __X_RANGE_WKID2248 = (607670.989729, 1870976.818427)
+    __Y_RANGE_WKID2248 = (80991.766092, 757695.597392)
 
     def __init__(self, strFileDirname, strNameCombo, strNewConsolidatedImageFolderPath):
         """
@@ -21,15 +21,15 @@ class Image(object):
         self.strConsolidatedImageFileDirectoryPath = strNewConsolidatedImageFolderPath
         self.strFilePath_Original = os.path.join(strFileDirname, strNameCombo)
         self.strFilePath_Moved = None
-        self.strFileName_lower = None
+        self.strFileName_lower = (strNameCombo.split(".")[0]).lower()
         self.strFileExtension_lower = None
         self.boolHasTFW = False
         self.intBitDepth = -99
         self.strProjection = None
-        self.floatTFW_XCoord = 0.0
-        self.floatTFW_YCoord = 0.0
+        self.__floatTFW_XCoord = 0.0
+        self.__floatTFW_YCoord = 0.0
         self.strPossibleUnits = None
-        self.lsTFWContents = []
+        self.__lsTFWContents = []
         self.strXYPixelSize = None
 
     # METHODS
@@ -44,71 +44,7 @@ class Image(object):
         with open(strTFWPath) as fOpen:
             for line in fOpen:
                 line = line.rstrip()
-                self.lsTFWContents.append(line)
-
-    def detectPossibleProjectionUnitsFromTFWList(self):
-        """
-        Determine the units of the image dimensions and location through the range of values for the x and y coordinates.
-
-        :return:
-        """
-        (x,y) = (self.floatTFW_XCoord,self.floatTFW_YCoord)
-        if (x > Image.xRangeWKID26985[0] and x < Image.xRangeWKID26985[1]) and (y > Image.yRangeWKID26985[0] and y < Image.yRangeWKID26985[1]):
-            self.strPossibleUnits = "METERS"
-        elif (x > Image.xRangeWKID2248[0] and x < Image.xRangeWKID2248[1]) and (y > Image.yRangeWKID2248[0] and y < Image.yRangeWKID2248[1]):
-            self.strPossibleUnits = "FEET"
-        else:
-            self.strPossibleUnits = "OTHER"
-
-    # SETTERS
-    def setFileName_lower(self):
-        """
-        Set the file name in lowercase.
-
-        :return:
-        """
-        self.strFileName_lower = (self.strFileName_and_Extension.split(".")[0]).lower()
-
-    def setFileExtension_lower(self):
-        """
-        Set the file extension in lower case
-
-        :return:
-        """
-        lsFileParts = (self.strFileName_and_Extension.lower()).split(".")
-        if ("tif" and "xml" in lsFileParts) and (len(lsFileParts) == 3):
-            self.strFileExtension_lower = "{}.{}".format(lsFileParts[-2].lower(),lsFileParts[-1].lower())
-        else:
-            self.strFileExtension_lower = lsFileParts[-1].lower()
-
-    def setBitDepth(self, resultObject):
-        """
-        Set the Bit Depth of the .tif image
-
-        :param resultObject: Result object from GetRasterProperties tool
-        :return:
-        """
-        self.intBitDepth = int(str(resultObject))
-
-
-    def setFilePath_Moved(self, strNewMasterImageCollectionFolderPath):
-        """
-        Set the file path of the relocated image.
-
-        :param strNewMasterImageCollectionFolderPath:
-        :return:
-        """
-        # self.strDestinationFilePathDirectory_Moved = os.path.join(strNewMasterImageCollectionFolderPath)
-        self.strFilePath_Moved = strNewMasterImageCollectionFolderPath
-
-    def setHasTFW(self, booleanValue):
-        """
-        Set the boolean value indicating a TFW file is or is not present.
-
-        :param booleanValue:
-        :return:
-        """
-        self.boolHasTFW = booleanValue
+                self.__lsTFWContents.append(line)
 
     def setXYCoordinatesUpperLeftCornerOfImageFromTFWList(self):
         """
@@ -116,61 +52,22 @@ class Image(object):
 
         :return:
         """
-        self.floatTFW_XCoord = float(self.lsTFWContents[4])
-        self.floatTFW_YCoord = float(self.lsTFWContents[5])
+        self.__floatTFW_XCoord = float(self.__lsTFWContents[4])
+        self.__floatTFW_YCoord = float(self.__lsTFWContents[5])
 
-    def setXYPixelSizeFromTFWList(self):
+    def detectPossibleProjectionUnitsFromTFWList(self):
         """
-        Set the string representation of the x and y pixel dimensions.
+        Determine the units of the image dimensions and location through the range of values for the x and y coordinates.
 
-        For writing to the report file.
         :return:
         """
-        if abs(float(self.lsTFWContents[0])) == abs(float(self.lsTFWContents[3])):
-            self.strXYPixelSize = "{}".format(abs(float(self.lsTFWContents[0])))
+        (x,y) = (self.__floatTFW_XCoord,self.__floatTFW_YCoord)
+        if (x > Image.__X_RANGE_WKID26985[0] and x < Image.__X_RANGE_WKID26985[1]) and (y > Image.__Y_RANGE_WKID26985[0] and y < Image.__Y_RANGE_WKID26985[1]):
+            self.strPossibleUnits = "METERS"
+        elif (x > Image.__X_RANGE_WKID2248[0] and x < Image.__X_RANGE_WKID2248[1]) and (y > Image.__Y_RANGE_WKID2248[0] and y < Image.__Y_RANGE_WKID2248[1]):
+            self.strPossibleUnits = "FEET"
         else:
-            self.strXYPixelSize = "{} \ {}".format(self.lsTFWContents[0],self.lsTFWContents[3])
-
-    # GETTERS
-    def getFilePath_Original(self):
-        """
-        Get the original file path from before relocation of the image file.
-
-        :return: String path
-        """
-        return self.strFilePath_Original
-
-    def getFileName_lower(self):
-        """
-        Get the lowercase file name.
-
-        :return: String
-        """
-        return self.strFileName_lower
-
-    def getFileExtension_lower(self):
-        """
-        Get the lowercase file extension.
-
-        :return: String
-        """
-        return self.strFileExtension_lower
-
-    def getFileName_and_Extension(self):
-        """
-        Get the original filename.extensions as read during the os.walk through the directory.
-
-        :return: String
-        """
-        return self.strFileName_and_Extension
-
-    def getFilePath_Moved(self):
-        """
-        Get the path of the relocated image file.
-
-        :return: String path
-        """
-        return self.strFilePath_Moved
+            self.strPossibleUnits = "OTHER"
 
     def getBitDepthPlainLanguage(self):
         """
@@ -186,26 +83,50 @@ class Image(object):
                                      13: "32-bit complex", 14: "64-bit complex"}
         return dictBitDepthPlainLanguage[self.intBitDepth]
 
-    def getHasTFW(self):
+    def setXYPixelSizeFromTFWList(self):
         """
-        Get the boolean value indicating the image has or has not a .tfw file.
+        Set the string representation of the x and y pixel dimensions.
 
-        :return: Boolean
+        For writing to the report file.
+        :return:
         """
-        return self.boolHasTFW
+        if abs(float(self.__lsTFWContents[0])) == abs(float(self.__lsTFWContents[3])):
+            self.strXYPixelSize = "{}".format(abs(float(self.__lsTFWContents[0])))
+        else:
+            self.strXYPixelSize = "{} \ {}".format(self.__lsTFWContents[0], self.__lsTFWContents[3])
 
-    def getPossibleUnits(self):
-        """
-        Get the dimension units measurement value.
+        # GETTERS/SETTERS
+    @property
+    def strFileExtension_lower(self):
+        return self.__strFileExtension_lower
 
-        :return: String
+    @strFileExtension_lower.setter
+    def strFileExtension_lower(self, val=None):
         """
-        return self.strPossibleUnits
+        Set the file extension in lower case
 
-    def getPixelDimensions(self):
+        :return:
         """
-        Get the string representation of the pixel dimensions.
 
-        :return:String
+        lsFileParts = (self.strFileName_and_Extension.lower()).split(".")
+        if ("tif" and "xml" in lsFileParts) and (len(lsFileParts) == 3):
+            self.__strFileExtension_lower = "{}.{}".format(lsFileParts[-2].lower(), lsFileParts[-1].lower())
+        else:
+            self.__strFileExtension_lower = lsFileParts[-1].lower()
+        return
+
+    @property
+    def intBitDepth(self):
+        return self.__intBitDepth
+
+    @intBitDepth.setter
+    def intBitDepth(self, val):
         """
-        return self.strXYPixelSize
+        Set the Bit Depth of the .tif image
+
+        :param resultObject: Result object from GetRasterProperties tool
+        :return:
+        """
+        # self.__intBitDepth = int(str(val))
+        self.__intBitDepth = int(str(val))
+        return

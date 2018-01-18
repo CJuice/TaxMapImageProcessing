@@ -13,7 +13,7 @@ class UtilityClassFunctionality(object):
 
         As of 20171109 all custom methods were static.
         """
-        pass
+        return
 
     @staticmethod
     def rawInputBasicChecks(strRawInputPromptSentence):
@@ -46,21 +46,6 @@ class UtilityClassFunctionality(object):
             pass
         else:
             return exit()
-
-    @staticmethod
-    def examineResultObject(resultObjectFromESRIProcess):
-        """
-        Examine the result object generated from an ESRI process.
-
-        Static method in UtilityClass
-        :param resultObjectFromESRIProcess: result object from geoprocessing process
-        :return: No return
-        """
-        lenResult = len(resultObjectFromESRIProcess)
-        print("len: {}".format(lenResult))
-        for i in range(0,lenResult):
-            strTemp = str(resultObjectFromESRIProcess[i])
-            print("\t{}".format(strTemp))
 
     @staticmethod
     def captureAndPrintGeoprocessingErrors(func):
@@ -96,7 +81,7 @@ class UtilityClassFunctionality(object):
         if os.path.exists(strPath):
             return
         else:
-            print("Path does not exist.")
+            UtilityClassFunctionality.printAndLog("Path does not exist.", UtilityClassFunctionality.ERROR_LEVEL)
             return exit()
 
     @staticmethod
@@ -109,7 +94,7 @@ class UtilityClassFunctionality(object):
         :return:
         """
         import logging
-        strMessage = strMessage.strip("\n")
+        strMessage = str(strMessage).rstrip("\n")
         if strLogLevel is UtilityClassFunctionality.INFO_LEVEL:
             logging.info(strMessage)
         elif strLogLevel is UtilityClassFunctionality.WARNING_LEVEL:
@@ -135,3 +120,19 @@ class UtilityClassFunctionality(object):
                                                                      , tupTodayDateTime[4]
                                                                      , tupTodayDateTime[5])
         return strTodayDateTimeForLogging
+
+    # USED DURING TESTING
+    # @staticmethod
+    # def examineResultObject(resultObjectFromESRIProcess):
+    #     """
+    #     Examine the result object generated from an ESRI process.
+    #
+    #     Static method in UtilityClass
+    #     :param resultObjectFromESRIProcess: result object from geoprocessing process
+    #     :return: No return
+    #     """
+    #     lenResult = len(resultObjectFromESRIProcess)
+    #     print("len: {}".format(lenResult))
+    #     for i in range(0,lenResult):
+    #         strTemp = str(resultObjectFromESRIProcess[i])
+    #         print("\t{}".format(strTemp))

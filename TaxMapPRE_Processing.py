@@ -23,13 +23,14 @@ Check the bit depth of each .tif .
 Check the projection.
 Check the units (meters/feet/other).
 Check the pixel dimensions.
-Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
+Each record in report file will have "Filename,HasTFW,BitDepth,Projection,TFW_SuggestedUnit,XY_PixelSize"
 Move all files to master location
 Build the report data.
 Create and Write the report file for use in excel etc.
 Provide the user an opportunity to immediately move on to Step 2 after reviewing the report data.
 Author: CJS
 Date: 20171108
+Revisions: 20180118 Refactored code to use @property and reduce bloat
 """
 # Imports
 from sys import exit
@@ -85,7 +86,7 @@ dictTFWCheck = {}
     # Logging setup
 strLogFileName = "LOG_TaxMapProcessing.log"
 logging.basicConfig(filename=strLogFileName,level=logging.INFO)
-UtilityClassFunctionality.printAndLog(" {} - Initiated Pre-Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()))
+UtilityClassFunctionality.printAndLog(" {} - Initiated Pre-Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()), UtilityClassFunctionality.INFO_LEVEL)
 
 # INPUTS
     # Get the directory of the tif files to walk through
@@ -127,16 +128,14 @@ try:
         for eachFile in files:
             # Build image object, store in list, and set properties
             objImage = ImageClass.Image(dirname, str(eachFile), strNewMasterImageCollectionFolderPath)
-            objImage.setFileName_lower()
-            objImage.setFileExtension_lower()
             lsImageObjects.append(objImage)
-            setOfFileExtensions.add(objImage.getFileExtension_lower())
+            setOfFileExtensions.add(objImage.strFileExtension_lower)
 
             # Build list of TIF and TFW files for later use
-            if objImage.getFileExtension_lower() == "tfw":
-                lsFileNamesTFW.append(objImage.getFileName_lower())
-            elif objImage.getFileExtension_lower() == "tif":
-                lsFileNamesTIF.append(objImage.getFileName_lower())
+            if objImage.strFileExtension_lower == "tfw":
+                lsFileNamesTFW.append(objImage.strFileName_lower)
+            elif objImage.strFileExtension_lower == "tif":
+                lsFileNamesTIF.append(objImage.strFileName_lower)
             else:
                 continue
     UtilityClassFunctionality.printAndLog(strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions)), UtilityClassFunctionality.INFO_LEVEL)
@@ -153,19 +152,20 @@ UtilityClassFunctionality.printAndLog(strPSA_Processing, UtilityClassFunctionali
     #   Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
     #   Check the bit depth of each .tif .
     #   Check the projection.
-    #   Each record in report file will have "Filename,HasTFW,BitDepth,Projection"
+    #   Check the TFW units
+    #   Check the xy pixel size
     # Move all files to master location
 try:
     for image in lsImageObjects:
 
         # Create string for new path, with a lowercase file name for standardizing moved image files, and check for existence to avoid error.
-        strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.getFileName_and_Extension().lower())
+        strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.strFileName_and_Extension.lower())
         if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
-            UtilityClassFunctionality.printAndLog(strErrorMsgFileAlreadyExistsInLocation.format(image.getFilePath_Original()), UtilityClassFunctionality.ERROR_LEVEL)
+            UtilityClassFunctionality.printAndLog(strErrorMsgFileAlreadyExistsInLocation.format(image.strFilePath_Original), UtilityClassFunctionality.ERROR_LEVEL)
             exit()
-        elif image.getFileExtension_lower() in lsAcceptableExtensionsForImageFilesOfInterest:
-            image.setFilePath_Moved(strFullNewDestinationPathForFile_lowerfilename)
-            shutil.move(image.getFilePath_Original(), image.getFilePath_Moved())
+        elif image.strFileExtension_lower in lsAcceptableExtensionsForImageFilesOfInterest:
+            image.strFilePath_Moved = strFullNewDestinationPathForFile_lowerfilename
+            shutil.move(image.strFilePath_Original, image.strFilePath_Moved)
         else:
             continue
 except Exception as e:
@@ -184,21 +184,19 @@ for tifFileName in lsFileNamesTIF:
 dictReportData = {}
 try:
     for image in lsImageObjects:
-        strImageObjectExtension = image.getFileExtension_lower()
-        if strImageObjectExtension == "tif":
-            image.setHasTFW(dictTFWCheck.get(image.getFileName_lower()))
+        if image.strFileExtension_lower == "tif":
+            image.boolHasTFW = dictTFWCheck.get(image.strFileName_lower)
 
             # NOTE: For the next two operations the decorator is not used because the process needs to continue even
             #       on error. The report file documents all including Errors.
             # Get the bit depth
             try:
-                resBitDepth = management.GetRasterProperties(in_raster=image.getFilePath_Moved(),
+                resBitDepth = management.GetRasterProperties(in_raster=image.strFilePath_Moved,
                                                              property_type="VALUETYPE") # Returns a Results Object
-                # UtilityClassFunctionality.examineResultObject(resBitDepth)
-                image.setBitDepth(resBitDepth)
+                image.intBitDepth = resBitDepth
                 strBitDepth = image.getBitDepthPlainLanguage()
             except ExecuteError:
-                UtilityClassFunctionality.printAndLog(strGPErrorMsgBitDepthCheckFail.format(image.getFileName_lower(),GetMessages(2)), UtilityClassFunctionality.WARNING_LEVEL)
+                UtilityClassFunctionality.printAndLog(strGPErrorMsgBitDepthCheckFail.format(image.strFileName_lower, GetMessages(2)), UtilityClassFunctionality.WARNING_LEVEL)
                 strBitDepth = UtilityClassFunctionality.ERROR_LEVEL
             except Exception as e:
                 strBitDepth = UtilityClassFunctionality.ERROR_LEVEL
@@ -206,10 +204,10 @@ try:
 
             # Get the spatial reference
             try:
-                spatrefProjectionName = Describe(image.getFilePath_Moved()).spatialReference
+                spatrefProjectionName = Describe(image.strFilePath_Moved).spatialReference
                 strProjectionName = str(spatrefProjectionName.name)
             except ExecuteError:
-                UtilityClassFunctionality.printAndLog(strGPErrorMsgSpatialReferenceCheckFail.format(image.getFileName_lower(),GetMessages(2)), UtilityClassFunctionality.WARNING_LEVEL)
+                UtilityClassFunctionality.printAndLog(strGPErrorMsgSpatialReferenceCheckFail.format(image.strFileName_lower, GetMessages(2)), UtilityClassFunctionality.WARNING_LEVEL)
                 strProjectionName = UtilityClassFunctionality.ERROR_LEVEL
             except Exception as e:
                 strProjectionName = UtilityClassFunctionality.ERROR_LEVEL
@@ -217,15 +215,15 @@ try:
 
             # Store TFW contents in list, set X,Y coordinates of upper left corner of image, determine projection units,
             #   and determine pixel dimensions
-            if image.getHasTFW():
+            if image.boolHasTFW:
                 image.storeTFWContentsInList()
                 image.setXYCoordinatesUpperLeftCornerOfImageFromTFWList()
                 image.detectPossibleProjectionUnitsFromTFWList()
                 image.setXYPixelSizeFromTFWList()
 
             # Build tuple (HasTFW, BitDepth, Projection)
-            tupFileData = (image.getHasTFW(), strBitDepth, strProjectionName, image.getPossibleUnits(), image.getPixelDimensions())
-            dictReportData[image.getFileName_lower()] = tupFileData
+            tupFileData = (image.boolHasTFW, strBitDepth, strProjectionName, image.strPossibleUnits, image.strXYPixelSize)
+            dictReportData[image.strFileName_lower] = tupFileData
         else:
             continue
 except Exception as e:
