@@ -24,9 +24,17 @@ class UtilityClassFunctionality(object):
         :param strRawInputPromptSentence: The prompting language to help user
         :return: String
         """
+        import sys
         strUserInput = None
         while True:
-            strUserInput = raw_input(strRawInputPromptSentence)
+            version = sys.version
+            strUserInput = None
+            if version.startswith("2.7."):
+                strUserInput = raw_input(strRawInputPromptSentence)
+            elif version.startswith("3."):
+                strUserInput = input(strRawInputPromptSentence)
+            else:
+                exit()
             if strUserInput == None or len(strUserInput) == 0:
                 pass
             else:

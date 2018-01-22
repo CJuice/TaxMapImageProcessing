@@ -21,63 +21,37 @@ import os
 from sys import exit
 from arcpy import management
 from arcpy import env
-from arcpy import SpatialReference
-from datetime import date
 import ImageClass
 from UtilityClass import UtilityClassFunctionality
 import logging
+import TaxMapVariables as myvars
+
     # importing below so that decorator method does not have to import on first use
 from arcpy import GetMessages
 from arcpy import ExecuteError
 
-# VARIABLES
-    # General
-strDateTodayNoDashes = str(date.today()).replace("-", "")
-strConsolidatedImageFileFolderPath = None
-strGeodatabaseWorkspacePath = None
-lsTifFilesInImagesFolder = None
-intDefineProjectionCode = 26985 # WKID 2248 is feet, WKID 26985 is meters
-intProjectRasterCode = 3857 # WKID 3857 is web mercator
-objSpatialReferenceProjectedRaster = SpatialReference(intProjectRasterCode)
-strRasterCatalogName = "RCmanaged_{}".format(strDateTodayNoDashes)
 env.overwriteOutput = True
-strPSADefiningProjection = "Defining projection... {}"
-strPSAReProjecting = "Re-Projecting... {}"
-strPSAWorkspaceToRasterCatalog = "Loading workspace into raster catalog..."
-strPSAProcessComplete = "Process complete."
-strPSAListOfFailedReProjections = "The following list of lowercase filenames did not Re-Project\n{}"
-strGeographicTransformationNAD83_WGS84 = "NAD_1983_To_WGS_1984_1"
-strRasterManagementType = "MANAGED"
-    # Input prompt messages
-strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
-strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
-    # Error messages
-strErrorMsgPathInvalid = "Path does not appear to exist. \n{}\n"
-strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and creating Image object.\n{}"
-    # Lists
-lsImageObjects = []
-lsUnsuccessfulImageReProjections = []
-    # Logging setup
-strLogFileName = "LOG_TaxMapProcessing.log"
-logging.basicConfig(filename=strLogFileName,level=logging.INFO)
+
+# Logging setup
+logging.basicConfig(filename=myvars.strLogFileName,level=logging.INFO)
 UtilityClassFunctionality.printAndLog(" {} - Initiated Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()), UtilityClassFunctionality.INFO_LEVEL)
 
 # INPUTS
     # Get the path for the consolidated images files folder
 try:
-    strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForConsolidatedImageFileFolderPath)
+    strConsolidatedImageFileFolderPath = UtilityClassFunctionality.rawInputBasicChecks(myvars.strPromptForConsolidatedImageFileFolderPath)
     UtilityClassFunctionality.checkPathExists(strConsolidatedImageFileFolderPath)
 except:
-    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath), UtilityClassFunctionality.ERROR_LEVEL)
+    UtilityClassFunctionality.printAndLog(myvars.strErrorMsgPathInvalid.format(strConsolidatedImageFileFolderPath), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
     # Get the geodatabase workspace from the user. if valid set workspace.
 try:
-    strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(strPromptForGeodatabaseWorkspacePath)
+    strGeodatabaseWorkspacePath = UtilityClassFunctionality.rawInputBasicChecks(myvars.strPromptForGeodatabaseWorkspacePath)
     UtilityClassFunctionality.checkPathExists(strGeodatabaseWorkspacePath)
     env.workspace = strGeodatabaseWorkspacePath
 except:
-    UtilityClassFunctionality.printAndLog(strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath), UtilityClassFunctionality.ERROR_LEVEL)
+    UtilityClassFunctionality.printAndLog(myvars.strErrorMsgPathInvalid.format(strGeodatabaseWorkspacePath), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
 # FUNCTIONS
@@ -99,59 +73,59 @@ try:
 
                 # Build image object, set properties, and store in list
                 objImage = ImageClass.Image(dirname, str(eachFile), strConsolidatedImageFileFolderPath)
-                UtilityClassFunctionality.printAndLog(strPSADefiningProjection.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
+                UtilityClassFunctionality.printAndLog(myvars.strPSADefiningProjection.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Define Projection
                 runESRIGPTool(management.DefineProjection,
                               in_dataset=objImage.strFilePath_Original,
-                              coor_system=intDefineProjectionCode)
-                UtilityClassFunctionality.printAndLog(strPSAReProjecting.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
+                              coor_system=myvars.intDefineProjectionCode)
+                UtilityClassFunctionality.printAndLog(myvars.strPSAReProjecting.format(objImage.strFileName_lower), UtilityClassFunctionality.INFO_LEVEL)
 
                 # Project Raster
                 try:
                     runESRIGPTool(management.ProjectRaster,
                                   in_raster=objImage.strFilePath_Original,
                                   out_raster=objImage.strFileName_lower,
-                                  out_coor_system=objSpatialReferenceProjectedRaster,
+                                  out_coor_system=myvars.objSpatialReferenceProjectedRaster,
                                   resampling_type=None,
                                   cell_size=None,
-                                  geographic_transform=strGeographicTransformationNAD83_WGS84,
+                                  geographic_transform=myvars.strGeographicTransformationNAD83_WGS84,
                                   Registration_Point=None,
                                   in_coor_system=None)
                 except:
-                    lsUnsuccessfulImageReProjections.append(objImage.strFileName_lower)
+                    myvars.lsUnsuccessfulImageReProjections.append(objImage.strFileName_lower)
             else:
                 continue
 except Exception as e:
-    UtilityClassFunctionality.printAndLog(strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
+    UtilityClassFunctionality.printAndLog(myvars.strErrorMsgWalkingDirectoryAndObjectCreationFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
     # Create Raster Catalog
 runESRIGPTool(management.CreateRasterCatalog,
               out_path=env.workspace,
-              out_name=strRasterCatalogName,
-              raster_spatial_reference=objSpatialReferenceProjectedRaster,
-              spatial_reference=objSpatialReferenceProjectedRaster,
+              out_name=myvars.strRasterCatalogName,
+              raster_spatial_reference=myvars.objSpatialReferenceProjectedRaster,
+              spatial_reference=myvars.objSpatialReferenceProjectedRaster,
               config_keyword=None,
               spatial_grid_1=0,
               spatial_grid_2=0,
               spatial_grid_3=0,
-              raster_management_type=strRasterManagementType,
+              raster_management_type=myvars.strRasterManagementType,
               template_raster_catalog=None)
 
-UtilityClassFunctionality.printAndLog(strPSAWorkspaceToRasterCatalog, UtilityClassFunctionality.INFO_LEVEL)
+UtilityClassFunctionality.printAndLog(myvars.strPSAWorkspaceToRasterCatalog, UtilityClassFunctionality.INFO_LEVEL)
 
     # Load raster datasets into raster catalog
 runESRIGPTool(management.WorkspaceToRasterCatalog,
               env.workspace,
-              strRasterCatalogName,
+              myvars.strRasterCatalogName,
               include_subdirectories=None,
               project=None)
 
     # Alert user to images that did not reproject
-if len(lsUnsuccessfulImageReProjections) != 0:
-    UtilityClassFunctionality.printAndLog(strPSAListOfFailedReProjections.format(lsUnsuccessfulImageReProjections), UtilityClassFunctionality.INFO_LEVEL)
+if len(myvars.lsUnsuccessfulImageReProjections) != 0:
+    UtilityClassFunctionality.printAndLog(myvars.strPSAListOfFailedReProjections.format(myvars.lsUnsuccessfulImageReProjections), UtilityClassFunctionality.INFO_LEVEL)
 else:
     pass
 
-UtilityClassFunctionality.printAndLog(strPSAProcessComplete, UtilityClassFunctionality.INFO_LEVEL)
+UtilityClassFunctionality.printAndLog(myvars.strPSAProcessComplete, UtilityClassFunctionality.INFO_LEVEL)
