@@ -128,19 +128,3 @@ class UtilityClassFunctionality(object):
                                                                      , tupTodayDateTime[4]
                                                                      , tupTodayDateTime[5])
         return strTodayDateTimeForLogging
-
-    # USED DURING TESTING
-    # @staticmethod
-    # def examineResultObject(resultObjectFromESRIProcess):
-    #     """
-    #     Examine the result object generated from an ESRI process.
-    #
-    #     Static method in UtilityClass
-    #     :param resultObjectFromESRIProcess: result object from geoprocessing process
-    #     :return: No return
-    #     """
-    #     lenResult = len(resultObjectFromESRIProcess)
-    #     print("len: {}".format(lenResult))
-    #     for i in range(0,lenResult):
-    #         strTemp = str(resultObjectFromESRIProcess[i])
-    #         print("\t{}".format(strTemp))

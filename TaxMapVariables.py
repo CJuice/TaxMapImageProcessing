@@ -41,21 +41,19 @@ strGPErrorMsgBitDepthCheckFail = "Geoprocessing error during image {} bit depth 
 strGPErrorMsgSpatialReferenceCheckFail = "Geoprocessing error during image {} spatial reference check: {}"
 strErrorMsgBuildingReportFail = "Error while building report data.\n{}"
 strErrorMsgOpeningWritingCSVFileFail = "Error opening/writing to report file.\n{}"
-    # Lists
+    # Collections
 lsAcceptableExtensionsForImageFilesOfInterest = ["tif","tfw","tif.xml"]
 lsFileNamesTIF = []
 lsFileNamesTFW = []
 dictTFWCheck = {}
+dictReportData = {}
+setOfFileExtensions = None
 
 #_____________________________________________________________________________________________________________________
 # PROCESSING VARIABLES
     # General
 strConsolidatedImageFileFolderPath = None
 strGeodatabaseWorkspacePath = None
-lsTifFilesInImagesFolder = None
-intDefineProjectionCode = 26985 # WKID 2248 is feet, WKID 26985 is meters
-intProjectRasterCode = 3857 # WKID 3857 is web mercator
-objSpatialReferenceProjectedRaster = SpatialReference(intProjectRasterCode)
 strRasterCatalogName = "RCmanaged_{}".format(strDateTodayNoDashes)
 strPSADefiningProjection = "Defining projection... {}"
 strPSAReProjecting = "Re-Projecting... {}"
@@ -63,11 +61,15 @@ strPSAWorkspaceToRasterCatalog = "Loading workspace into raster catalog..."
 strPSAListOfFailedReProjections = "The following list of lowercase filenames did not Re-Project\n{}"
 strGeographicTransformationNAD83_WGS84 = "NAD_1983_To_WGS_1984_1"
 strRasterManagementType = "MANAGED"
+intDefineProjectionCode = 26985 # WKID 2248 is feet, WKID 26985 is meters
+intProjectRasterCode = 3857 # WKID 3857 is web mercator
+objSpatialReferenceProjectedRaster = SpatialReference(intProjectRasterCode)
     # Input prompt messages
 strPromptForConsolidatedImageFileFolderPath = "Paste the path to the folder containing the consolidated image files.\n>"
 strPromptForGeodatabaseWorkspacePath = "Paste the path to the workspace (geodatabase).\n>"
     # Error messages
 strErrorMsgPathInvalid = "Path does not appear to exist. \n{}\n"
 strErrorMsgWalkingDirectoryAndObjectCreationFail = "Error walking directory and creating Image object.\n{}"
-    # Lists
+    # Collections
+lsTifFilesInImagesFolder = []
 lsUnsuccessfulImageReProjections = []

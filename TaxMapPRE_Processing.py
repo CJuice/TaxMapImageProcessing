@@ -81,22 +81,12 @@ except Exception as e:
     # Notify the script user of the file extensions they are asking the script to examine and get a decision on proceed/exit
         # Basically a check for non TIF and TFW files such as zip files.
 try:
-    setOfFileExtensions = set()
     for (dirname, dirs, files) in os.walk(strInputFileDirectory):
-        for eachFile in files:
-            # Build image object, store in list, and set properties
-            objImage = ImageClass.Image(dirname, str(eachFile), strNewMasterImageCollectionFolderPath)
-            myvars.lsImageObjects.append(objImage)
-            setOfFileExtensions.add(objImage.strFileExtension_lower)
-
-            # Build list of TIF and TFW files for later use
-            if objImage.strFileExtension_lower == "tfw":
-                myvars.lsFileNamesTFW.append(objImage.strFileName_lower)
-            elif objImage.strFileExtension_lower == "tif":
-                myvars.lsFileNamesTIF.append(objImage.strFileName_lower)
-            else:
-                continue
-    UtilityClassFunctionality.printAndLog(myvars.strFileExtensionsPresentInImageDatasets.format(tuple(setOfFileExtensions)), UtilityClassFunctionality.INFO_LEVEL)
+        myvars.lsImageObjects = myvars.lsImageObjects + [ImageClass.Image(dirname, str(eachFile), strNewMasterImageCollectionFolderPath) for eachFile in files]
+    myvars.setOfFileExtensions = set([objImage.strFileExtension_lower for objImage in myvars.lsImageObjects])
+    myvars.lsFileNamesTFW = [objImage.strFileName_lower for objImage in myvars.lsImageObjects if objImage.strFileExtension_lower == "tfw"]
+    myvars.lsFileNamesTIF = [objImage.strFileName_lower for objImage in myvars.lsImageObjects if objImage.strFileExtension_lower == "tif"]
+    UtilityClassFunctionality.printAndLog(myvars.strFileExtensionsPresentInImageDatasets.format(tuple(myvars.setOfFileExtensions)), UtilityClassFunctionality.INFO_LEVEL)
     strUserCheck = UtilityClassFunctionality.rawInputBasicChecks(myvars.strPromptForProceedWithKnownPresentFileExtensions)
 except Exception as e:
     UtilityClassFunctionality.printAndLog(myvars.strErrorMsgWalkingDirectoryCheckingExtensionsFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
@@ -105,14 +95,6 @@ except Exception as e:
     # Check user entry to see if they are okay with the files about to be processed.
 UtilityClassFunctionality.processUserEntry_YesNo(strUserCheck)
 UtilityClassFunctionality.printAndLog(myvars.strPSA_Processing, UtilityClassFunctionality.INFO_LEVEL)
-
-    # Step through all Image Objects.
-    #   Check that each .tif has a .tfw file and write result to dictionary with filename:(Zero for False, One for True).
-    #   Check the bit depth of each .tif .
-    #   Check the projection.
-    #   Check the TFW units
-    #   Check the xy pixel size
-    # Move all files to master location
 try:
     for image in myvars.lsImageObjects:
 
@@ -123,6 +105,8 @@ try:
             exit()
         elif image.strFileExtension_lower in myvars.lsAcceptableExtensionsForImageFilesOfInterest:
             image.strFilePath_Moved = strFullNewDestinationPathForFile_lowerfilename
+
+            # Move all files to master location
             shutil.move(image.strFilePath_Original, image.strFilePath_Moved)
         else:
             continue
@@ -130,16 +114,10 @@ except Exception as e:
     UtilityClassFunctionality.printAndLog(myvars.strErrorMsgMovingFilesFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
     exit()
 
-    # Build the report data
-        # Check the TIF to TFW relation
-for tifFileName in myvars.lsFileNamesTIF:
-    if tifFileName in myvars.lsFileNamesTFW:
-        myvars.dictTFWCheck[tifFileName] = True
-    else:
-        myvars.dictTFWCheck[tifFileName] = False
-
+    # Generate the data for the report
+        # Check the TIF to TFW relation. Write result to dictionary with filename:False/True.
+myvars.dictTFWCheck = {tifFileName:tifFileName in myvars.lsFileNamesTFW for tifFileName in myvars.lsFileNamesTIF}
         # Build the tuple of file data for the report file
-dictReportData = {}
 try:
     for image in myvars.lsImageObjects:
         if image.strFileExtension_lower == "tif":
@@ -179,9 +157,9 @@ try:
                 image.detectPossibleProjectionUnitsFromTFWList()
                 image.setXYPixelSizeFromTFWList()
 
-            # Build tuple (HasTFW, BitDepth, Projection)
+            # Build report data tuple (HasTFW, BitDepth, Projection)
             tupFileData = (image.boolHasTFW, strBitDepth, strProjectionName, image.strPossibleUnits, image.strXYPixelSize)
-            dictReportData[image.strFileName_lower] = tupFileData
+            myvars.dictReportData[image.strFileName_lower] = tupFileData
         else:
             continue
 except Exception as e:
@@ -193,7 +171,7 @@ strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
 try:
     with open(strReportFilePath,'w') as fReportFile:
         fReportFile.write("{},{},{},{},{},{}\n".format(myvars.strFileNameHeader, myvars.strHasTFWHeader, myvars.strBitDepthHeader, myvars.strProjectionHeader, myvars.strFeetVsMetersVsOtherHeader, myvars.strXYPixelSizeHeader))
-        for key,value in dictReportData.iteritems():
+        for key,value in myvars.dictReportData.iteritems():
             fReportFile.write("{},{},{},{},{},{}\n".format(key, value[0], value[1], value[2], value[3], value[4]))
 except Exception as e:
     UtilityClassFunctionality.printAndLog(myvars.strErrorMsgOpeningWritingCSVFileFail.format(e), UtilityClassFunctionality.ERROR_LEVEL)
