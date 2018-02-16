@@ -107,9 +107,11 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
                 UtilityClassFunctionality.printAndLog(myvars.strErrorMsgFileAlreadyExistsInLocation.format(image.strFilePath_Original), UtilityClassFunctionality.ERROR_LEVEL)
                 exit()
             elif image.strFileExtension_lower in myvars.lsAcceptableExtensionsForImageFilesOfInterest:
+                # Strange random file duplication issue was occurring. Can't recreate but staged below code for future use.
+                # and (image.strFilePath_Original != strFullNewDestinationPathForFile_lowerfilename)
                 image.strFilePath_Moved = strFullNewDestinationPathForFile_lowerfilename
 
-                # Move all files to master location
+                # Move all files to master location unless the file is sitting in the master location already
                 shutil.move(image.strFilePath_Original, image.strFilePath_Moved)
             else:
                 continue
@@ -171,6 +173,7 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
     strReportFileName = "{}{}".format(myvars.strDateTodayNoDashes, myvars.strReportFileEnding)
     strReportFilePath = os.path.join(strReportFileLocation, strReportFileName)
     try:
+        UtilityClassFunctionality.printAndLog(myvars.strPSA_WritingReport,UtilityClassFunctionality.INFO_LEVEL)
         with open(strReportFilePath,'w') as fReportFile:
             fReportFile.write("{},{},{},{},{},{}\n".format(myvars.strFileNameHeader, myvars.strHasTFWHeader, myvars.strBitDepthHeader, myvars.strProjectionHeader, myvars.strFeetVsMetersVsOtherHeader, myvars.strXYPixelSizeHeader))
             for key,value in myvars.dictReportData.iteritems():
@@ -194,6 +197,7 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
     except Exception as e:
         UtilityClassFunctionality.printAndLog(e, UtilityClassFunctionality.ERROR_LEVEL)
         exit()
+    return
 if __name__ == '__main__':
     print("NOTICE: Should be run through TaxMapProcessGUI.py. Loading anyway...")
     from UtilityClass import UtilityClassFunctionality
@@ -203,3 +207,4 @@ if __name__ == '__main__':
     main(strInputFileDirectory,strNewFileDirectoryForAllImages)
 else:
     pass
+exit()

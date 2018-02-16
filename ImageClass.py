@@ -21,7 +21,7 @@ class Image(object):
         self.strConsolidatedImageFileDirectoryPath = strNewConsolidatedImageFolderPath
         self.strFilePath_Original = os.path.join(strFileDirname, strNameCombo)
         self.strFilePath_Moved = None
-        self.strFileName_lower = (strNameCombo.split(".")[0]).lower()
+        self.strFileName_lower = None
         self.strFileExtension_lower = None
         self.boolHasTFW = False
         self.intBitDepth = -99
@@ -96,6 +96,21 @@ class Image(object):
             self.strXYPixelSize = "{} \ {}".format(self.__lsTFWContents[0], self.__lsTFWContents[3])
 
         # GETTERS/SETTERS
+
+    @property
+    def strFileName_lower(self):
+        return self.__strFileName_lower
+
+    @strFileName_lower.setter
+    def strFileName_lower(self, val=None):
+        """
+        Calculate & set the file name in lowercase
+        :param val:
+        :return:
+        """
+        self.__strFileName_lower = (self.strFileName_and_Extension.split(".")[0]).lower()
+        return
+
     @property
     def strFileExtension_lower(self):
         return self.__strFileExtension_lower
