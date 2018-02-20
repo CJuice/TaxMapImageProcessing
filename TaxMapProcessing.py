@@ -138,7 +138,6 @@ def main(ConsolidatedImageFileFolderPath=None,GeodatabaseWorkspacePath=None):
 
     UtilityClassFunctionality.printAndLog(myvars.strPSAProcessComplete, UtilityClassFunctionality.INFO_LEVEL)
 if __name__ == '__main__':
-    print("NOTICE: Should be run through TaxMapProcessGUI.py. Loading anyway...")
     from UtilityClass import UtilityClassFunctionality
     import TaxMapVariables as myvars
 

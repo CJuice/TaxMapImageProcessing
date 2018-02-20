@@ -35,6 +35,7 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
     # IMPORTS
     from sys import exit
     import os
+    import re
     from arcpy import Describe, ExecuteError, GetMessages, management
     import shutil
     from UtilityClass import UtilityClassFunctionality
@@ -47,7 +48,7 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
 
     # LOGGING
     logging.basicConfig(filename=myvars.strLogFileName,level=logging.INFO)
-    UtilityClassFunctionality.printAndLog(" {} - Initiated Pre-Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()), UtilityClassFunctionality.INFO_LEVEL)
+    UtilityClassFunctionality.printAndLog("Initiated Pre-Processing".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting()), UtilityClassFunctionality.INFO_LEVEL)
 
     # INPUTS
         # Get the directory of the tif files to walk through
@@ -101,15 +102,15 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
     try:
         for image in myvars.lsImageObjects:
 
-            # Create string for new path, with a lowercase file name for standardizing moved image files, and check for existence to avoid error.
-            strFullNewDestinationPathForFile_lowerfilename = os.path.join(strNewMasterImageCollectionFolderPath, image.strFileName_and_Extension.lower())
-            if os.path.exists(strFullNewDestinationPathForFile_lowerfilename):
+            # Create string for new path, and check for existence to avoid error.
+            strFullNewDestinationPathForFile = os.path.join(strNewMasterImageCollectionFolderPath, image.strCleanedFileName_and_Extension)
+            if os.path.exists(strFullNewDestinationPathForFile):
                 UtilityClassFunctionality.printAndLog(myvars.strErrorMsgFileAlreadyExistsInLocation.format(image.strFilePath_Original), UtilityClassFunctionality.ERROR_LEVEL)
                 exit()
             elif image.strFileExtension_lower in myvars.lsAcceptableExtensionsForImageFilesOfInterest:
                 # Strange random file duplication issue was occurring. Can't recreate but staged below code for future use.
-                # and (image.strFilePath_Original != strFullNewDestinationPathForFile_lowerfilename)
-                image.strFilePath_Moved = strFullNewDestinationPathForFile_lowerfilename
+                # and (image.strFilePath_Original != strFullNewDestinationPathForFile)
+                image.strFilePath_Moved = strFullNewDestinationPathForFile
 
                 # Move all files to master location unless the file is sitting in the master location already
                 shutil.move(image.strFilePath_Original, image.strFilePath_Moved)
@@ -126,7 +127,6 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
         for image in myvars.lsImageObjects:
             if image.strFileExtension_lower == "tif":
                 image.boolHasTFW = myvars.dictTFWCheck.get(image.strFileName_lower)
-
                 # NOTE: For the next two operations the decorator is not used because the process needs to continue even
                 #       on error. The report file documents all including Errors.
                 # Get the bit depth
@@ -163,7 +163,8 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
 
                 # Build report data tuple (HasTFW, BitDepth, Projection)
                 tupFileData = (image.boolHasTFW, strBitDepth, strProjectionName, image.strPossibleUnits, image.strXYPixelSize)
-                myvars.dictReportData[image.strFileName_lower] = tupFileData
+                myvars.dictReportData[image.strCleanFileName] = tupFileData
+                # myvars.dictReportData[image.strFileName_lower] = tupFileData
             else:
                 continue
     except Exception as e:
@@ -199,7 +200,6 @@ def main(InputFileDirectory, NewFileDirectoryForAllImages):
         exit()
     return
 if __name__ == '__main__':
-    print("NOTICE: Should be run through TaxMapProcessGUI.py. Loading anyway...")
     from UtilityClass import UtilityClassFunctionality
     import TaxMapVariables as myvars
     strInputFileDirectory = UtilityClassFunctionality.rawInputBasicChecks(myvars.strPromptForImageDirectoryPath)

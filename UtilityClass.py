@@ -104,18 +104,18 @@ class UtilityClassFunctionality(object):
         import logging
         strMessage = str(strMessage).rstrip("\n")
         if strLogLevel is UtilityClassFunctionality.INFO_LEVEL:
-            logging.info(strMessage)
+            logging.info("{} : {}".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting(),strMessage))
         elif strLogLevel is UtilityClassFunctionality.WARNING_LEVEL:
-            logging.warning(strMessage)
+            logging.warning("{} : {}".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting(),strMessage))
         elif strLogLevel is UtilityClassFunctionality.ERROR_LEVEL:
-            logging.error(strMessage)
-        print(strMessage)
+            logging.error("{} : {}".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting(),strMessage))
+        print("{} : {}".format(UtilityClassFunctionality.getDateTimeForLoggingAndPrinting(),strMessage))
         return
 
     @staticmethod
     def getDateTimeForLoggingAndPrinting():
         """
-        Generate a preformatted date and time string for logging and printing purposes.
+        Generate a pre-formatted date and time string for logging and printing purposes.
 
         :return: String {}/{}/{} UTC[{}:{}:{}] usable in logging, and printing statements if desired
         """

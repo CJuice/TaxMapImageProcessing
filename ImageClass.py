@@ -1,4 +1,4 @@
-import os
+import os, re
 class Image(object):
     """
     Object template for each part of the .tif image files (tif, tfw, tif.xml, etc)
@@ -20,6 +20,8 @@ class Image(object):
         self.strFileName_and_Extension = strNameCombo
         self.strConsolidatedImageFileDirectoryPath = strNewConsolidatedImageFolderPath
         self.strFilePath_Original = os.path.join(strFileDirname, strNameCombo)
+        self.strCleanedFileName_and_Extension = None
+        self.strCleanFileName = None
         self.strFilePath_Moved = None
         self.strFileName_lower = None
         self.strFileExtension_lower = None
@@ -39,12 +41,15 @@ class Image(object):
 
         :return:
         """
-        tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
+        # tfwFileNameAndExtension = "{}.{}".format(self.strFileName_lower, "tfw")
+        tfwFileNameAndExtension = "{}.{}".format(self.strCleanFileName, "tfw")
+
         strTFWPath = os.path.join(self.strConsolidatedImageFileDirectoryPath, tfwFileNameAndExtension)
         with open(strTFWPath) as fOpen:
             for line in fOpen:
                 line = line.rstrip()
-                self.__lsTFWContents.append(line)
+                if len(line) > 0:
+                    self.__lsTFWContents.append(line)
 
     def setXYCoordinatesUpperLeftCornerOfImageFromTFWList(self):
         """
@@ -96,6 +101,36 @@ class Image(object):
             self.strXYPixelSize = "{} \ {}".format(self.__lsTFWContents[0], self.__lsTFWContents[3])
 
         # GETTERS/SETTERS
+    @property
+    def strCleanedFileName_and_Extension(self):
+        return self.__strCleanedFileName_and_Extension
+
+    @strCleanedFileName_and_Extension.setter
+    def strCleanedFileName_and_Extension(self, val=None):
+        """
+        Clean the file name and extension of illegal characters.
+
+        Must be alpha, numeric, period, or underscore
+        :param val:
+        :return:
+        """
+        cleaned = re.sub(r'[^a-zA-Z0-9_.]', '_', self.strFileName_and_Extension)
+        self.__strCleanedFileName_and_Extension = cleaned
+        self.strFileName_lower = cleaned
+        return
+
+    @property
+    def strCleanFileName(self):
+        return self.__strCleanFileName
+
+    @strCleanFileName.setter
+    def strCleanFileName(self, val=None):
+        """
+        Create a clean file name without extension
+        :param val:
+        :return:
+        """
+        self.__strCleanFileName = (self.strCleanedFileName_and_Extension.split("."))[0]
 
     @property
     def strFileName_lower(self):
